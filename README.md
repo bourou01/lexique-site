@@ -1,4 +1,7 @@
 lexique-site
 ============
 
-site de dictionnaire mahorais/fraçais
+site de dictionnaire mahorais/français
+
+www.jugemento.com/lexique
+============
