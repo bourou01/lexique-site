@@ -1,0 +1,26 @@
+INSERT INTO `categories` VALUES(1, 'Le Quotidien', '', 'active', 0);
+INSERT INTO `categories` VALUES(2, 'Le Savoir Vivre', '', 'active', 0);
+INSERT INTO `categories` VALUES(3, 'Les Activités', '', 'active', 0);
+INSERT INTO `categories` VALUES(4, 'La Routine', '', 'active', 0);
+INSERT INTO `categories` VALUES(5, 'Autre', '', 'active', 0);
+INSERT INTO `categories` VALUES(6, 'Conversation', 'description', 'active', 1);
+INSERT INTO `categories` VALUES(7, 'Transport', 'description', 'active', 1);
+INSERT INTO `categories` VALUES(8, 'Au marché', 'description', 'active', 1);
+INSERT INTO `categories` VALUES(9, 'La boutique', 'description', 'active', 1);
+INSERT INTO `categories` VALUES(10, 'Au restaurant', 'description', 'active', 1);
+INSERT INTO `categories` VALUES(11, 'La santé', 'description', 'active', 2);
+INSERT INTO `categories` VALUES(12, 'Les Cinq Sens', 'description', 'active', 2);
+INSERT INTO `categories` VALUES(13, 'Le Corps', 'description', 'active', 2);
+INSERT INTO `categories` VALUES(14, 'A la pêche', 'description', 'active', 3);
+INSERT INTO `categories` VALUES(15, 'Scolarité', 'description', 'active', 3);
+INSERT INTO `categories` VALUES(16, 'Pique-nique', 'description', 'active', 3);
+INSERT INTO `categories` VALUES(17, 'Le ménage', 'description', 'active', 4);
+INSERT INTO `categories` VALUES(18, 'La campagne', 'description', 'active', 4);
+INSERT INTO `categories` VALUES(19, 'La famille', 'description', 'active', 4);
+INSERT INTO `categories` VALUES(20, 'Le temps', 'description', 'active', 5);
+INSERT INTO `categories` VALUES(21, 'Mots utiles', 'description', 'active', 5);
+INSERT INTO `categories` VALUES(22, 'Verbes réguliers', 'description', 'active', 5);
+INSERT INTO `categories` VALUES(23, 'Verbes irréguliers', 'description', 'active', 5);
+INSERT INTO `categories` VALUES(24, 'Les nombres', 'description', 'active', 5);
+INSERT INTO `categories` VALUES(25, 'Autre', 'description', 'active', 5);
+

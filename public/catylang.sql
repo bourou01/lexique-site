@@ -1,0 +1,11 @@
+INSERT INTO `categories` VALUES(28,"Les Animaux","description","active",26);
+INSERT INTO `categories` VALUES(29,"Les Arbres","description","active",26);
+INSERT INTO `categories` VALUES(30,"La Mer","description","active",26);
+INSERT INTO `categories` VALUES(31,"La Maison","description","active",4);
+INSERT INTO `categories` VALUES(32,"L'École","description","active",3);
+INSERT INTO `categories` VALUES(33,"Les Outils","description","active",3);
+INSERT INTO `categories` VALUES(34,"La Musique","description","active",27);
+INSERT INTO `categories` VALUES(35,"Les Couleurs","description","active",27);
+INSERT INTO `categories` VALUES(36,"Le Corps Humain","description","active",2);
+INSERT INTO `categories` VALUES(37,"La cuisine","description","active",4);
+INSERT INTO `categories` VALUES(38,"Les Vêtements","description","active",1);
