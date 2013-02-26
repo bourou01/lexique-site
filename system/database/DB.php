@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -32,16 +32,16 @@
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  * @param 	string
- * @param 	bool	Determines if query builder should be used or not
+ * @param 	bool	Determines if active record should be used or not
  */
-function &DB($params = '', $query_builder_override = NULL)
+function &DB($params = '', $active_record_override = NULL)
 {
 	// Load the DB config file if a DSN string wasn't passed
-	if (is_string($params) && strpos($params, '://') === FALSE)
+	if (is_string($params) AND strpos($params, '://') === FALSE)
 	{
 		// Is the config file in the environment folder?
 		if (( ! defined('ENVIRONMENT') OR ! file_exists($file_path = APPPATH.'config/'.ENVIRONMENT.'/database.php'))
-			&& ! file_exists($file_path = APPPATH.'config/database.php'))
+			AND ! file_exists($file_path = APPPATH.'config/database.php'))
 		{
 			show_error('The configuration file database.php does not exist.');
 		}
@@ -53,7 +53,7 @@ function &DB($params = '', $query_builder_override = NULL)
 			show_error('No database connection settings were found in the database config file.');
 		}
 
-		if ($params !== '')
+		if ($params != '')
 		{
 			$active_group = $params;
 		}
@@ -74,30 +74,33 @@ function &DB($params = '', $query_builder_override = NULL)
 		 *  parameter. DSNs must have this prototype:
 		 *  $dsn = 'driver://username:password@hostname/database';
 		 */
-		if (($dsn = @parse_url($params)) === FALSE)
+		if (($dns = @parse_url($params)) === FALSE)
 		{
 			show_error('Invalid DB Connection String');
 		}
 
 		$params = array(
-				'dbdriver'	=> $dsn['scheme'],
-				'hostname'	=> isset($dsn['host']) ? rawurldecode($dsn['host']) : '',
-				'port'		=> isset($dsn['port']) ? rawurldecode($dsn['port']) : '',
-				'username'	=> isset($dsn['user']) ? rawurldecode($dsn['user']) : '',
-				'password'	=> isset($dsn['pass']) ? rawurldecode($dsn['pass']) : '',
-				'database'	=> isset($dsn['path']) ? rawurldecode(substr($dsn['path'], 1)) : ''
+				'dbdriver'	=> $dns['scheme'],
+				'hostname'	=> (isset($dns['host'])) ? rawurldecode($dns['host']) : '',
+				'username'	=> (isset($dns['user'])) ? rawurldecode($dns['user']) : '',
+				'password'	=> (isset($dns['pass'])) ? rawurldecode($dns['pass']) : '',
+				'database'	=> (isset($dns['path'])) ? rawurldecode(substr($dns['path'], 1)) : ''
 			);
 
 		// were additional config items set?
-		if (isset($dsn['query']))
+		if (isset($dns['query']))
 		{
-			parse_str($dsn['query'], $extra);
-
+			parse_str($dns['query'], $extra);
 			foreach ($extra as $key => $val)
 			{
-				if (is_string($val) && in_array(strtoupper($val), array('TRUE', 'FALSE', 'NULL')))
+				// booleans please
+				if (strtoupper($val) === 'TRUE')
 				{
-					$val = var_export($val);
+					$val = TRUE;
+				}
+				elseif (strtoupper($val) === 'FALSE')
+				{
+					$val = FALSE;
 				}
 
 				$params[$key] = $val;
@@ -106,34 +109,27 @@ function &DB($params = '', $query_builder_override = NULL)
 	}
 
 	// No DB specified yet? Beat them senseless...
-	if (empty($params['dbdriver']))
+	if ( ! isset($params['dbdriver']) OR $params['dbdriver'] == '')
 	{
 		show_error('You have not selected a database type to connect to.');
 	}
 
-	// Load the DB classes. Note: Since the query builder class is optional
+	// Load the DB classes. Note: Since the active record class is optional
 	// we need to dynamically create a class that extends proper parent class
-	// based on whether we're using the query builder class or not.
-	if ($query_builder_override !== NULL)
+	// based on whether we're using the active record class or not.
+	if ($active_record_override !== NULL)
 	{
-		$query_builder = $query_builder_override;
-	}
-	// Backwards compatibility work-around for keeping the
-	// $active_record config variable working. Should be
-	// removed in v3.1
-	elseif ( ! isset($query_builder) && isset($active_record))
-	{
-		$query_builder = $active_record;
+		$active_record = $active_record_override;
 	}
 
 	require_once(BASEPATH.'database/DB_driver.php');
 
-	if ( ! isset($query_builder) OR $query_builder === TRUE)
+	if ( ! isset($active_record) OR $active_record == TRUE)
 	{
-		require_once(BASEPATH.'database/DB_query_builder.php');
+		require_once(BASEPATH.'database/DB_active_rec.php');
 		if ( ! class_exists('CI_DB'))
 		{
-			class CI_DB extends CI_DB_query_builder { }
+			class CI_DB extends CI_DB_active_record { }
 		}
 	}
 	elseif ( ! class_exists('CI_DB'))
@@ -141,23 +137,18 @@ function &DB($params = '', $query_builder_override = NULL)
 		class CI_DB extends CI_DB_driver { }
 	}
 
-	// Load the DB driver
-	$driver_file = BASEPATH.'database/drivers/'.$params['dbdriver'].'/'.$params['dbdriver'].'_driver.php';
-
-	if ( ! file_exists($driver_file)) show_error('Invalid DB driver');
-
-	require_once($driver_file);
+	require_once(BASEPATH.'database/drivers/'.$params['dbdriver'].'/'.$params['dbdriver'].'_driver.php');
 
 	// Instantiate the DB adapter
 	$driver = 'CI_DB_'.$params['dbdriver'].'_driver';
 	$DB = new $driver($params);
 
-	if ($DB->autoinit === TRUE)
+	if ($DB->autoinit == TRUE)
 	{
 		$DB->initialize();
 	}
 
-	if ( ! empty($params['stricton']))
+	if (isset($params['stricton']) && $params['stricton'] == TRUE)
 	{
 		$DB->query('SET SESSION sql_mode="STRICT_ALL_TABLES"');
 	}

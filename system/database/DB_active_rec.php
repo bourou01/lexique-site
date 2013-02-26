@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -25,10 +25,12 @@
  * @filesource
  */
 
+// ------------------------------------------------------------------------
+
 /**
- * Query Builder Class
+ * Active Record Class
  *
- * This is the platform-independent base Query Builder implementation class.
+ * This is the platform-independent base Active Record implementation class.
  *
  * @package		CodeIgniter
  * @subpackage	Drivers
@@ -36,46 +38,46 @@
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-
-abstract class CI_DB_query_builder extends CI_DB_driver {
+class CI_DB_active_record extends CI_DB_driver {
 
 	protected $return_delete_sql		= FALSE;
 	protected $reset_delete_data		= FALSE;
 
-	protected $qb_select			= array();
-	protected $qb_distinct			= FALSE;
-	protected $qb_from			= array();
-	protected $qb_join			= array();
-	protected $qb_where			= array();
-	protected $qb_like			= array();
-	protected $qb_groupby			= array();
-	protected $qb_having			= array();
-	protected $qb_keys			= array();
-	protected $qb_limit			= FALSE;
-	protected $qb_offset			= FALSE;
-	protected $qb_orderby			= array();
-	protected $qb_set			= array();
-	protected $qb_wherein			= array();
-	protected $qb_aliased_tables		= array();
-	protected $qb_store_array		= array();
-	protected $qb_where_group_started	= FALSE;
-	protected $qb_where_group_count		= 0;
+	protected $ar_select			= array();
+	protected $ar_distinct			= FALSE;
+	protected $ar_from			= array();
+	protected $ar_join			= array();
+	protected $ar_where			= array();
+	protected $ar_like			= array();
+	protected $ar_groupby			= array();
+	protected $ar_having			= array();
+	protected $ar_keys			= array();
+	protected $ar_limit			= FALSE;
+	protected $ar_offset			= FALSE;
+	protected $ar_order			= FALSE;
+	protected $ar_orderby			= array();
+	protected $ar_set			= array();
+	protected $ar_wherein			= array();
+	protected $ar_aliased_tables		= array();
+	protected $ar_store_array		= array();
+	protected $ar_where_group_started	= FALSE;
+	protected $ar_where_group_count		= 0;
 
-	// Query Builder Caching variables
-	protected $qb_caching				= FALSE;
-	protected $qb_cache_exists			= array();
-	protected $qb_cache_select			= array();
-	protected $qb_cache_from			= array();
-	protected $qb_cache_join			= array();
-	protected $qb_cache_where			= array();
-	protected $qb_cache_like			= array();
-	protected $qb_cache_groupby			= array();
-	protected $qb_cache_having			= array();
-	protected $qb_cache_orderby			= array();
-	protected $qb_cache_set				= array();
+	// Active Record Caching variables
+	protected $ar_caching				= FALSE;
+	protected $ar_cache_exists			= array();
+	protected $ar_cache_select			= array();
+	protected $ar_cache_from			= array();
+	protected $ar_cache_join			= array();
+	protected $ar_cache_where			= array();
+	protected $ar_cache_like			= array();
+	protected $ar_cache_groupby			= array();
+	protected $ar_cache_having			= array();
+	protected $ar_cache_orderby			= array();
+	protected $ar_cache_set				= array();
 
-	protected $qb_no_escape 			= array();
-	protected $qb_cache_no_escape			= array();
+	protected $ar_no_escape 			= array();
+	protected $ar_cache_no_escape			= array();
 
 	/**
 	 * Select
@@ -83,7 +85,6 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * Generates the SELECT portion of the query
 	 *
 	 * @param	string
-	 * @param	mixed
 	 * @return	object
 	 */
 	public function select($select = '*', $escape = NULL)
@@ -93,23 +94,20 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$select = explode(',', $select);
 		}
 
-		// If the escape value was not set will will base it on the global setting
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
 		foreach ($select as $val)
 		{
 			$val = trim($val);
 
-			if ($val !== '')
+			if ($val != '')
 			{
-				$this->qb_select[] = $val;
-				$this->qb_no_escape[] = $escape;
+				$this->ar_select[] = $val;
+				$this->ar_no_escape[] = $escape;
 
-				if ($this->qb_caching === TRUE)
+				if ($this->ar_caching === TRUE)
 				{
-					$this->qb_cache_select[] = $val;
-					$this->qb_cache_exists[] = 'select';
-					$this->qb_cache_no_escape[] = $escape;
+					$this->ar_cache_select[] = $val;
+					$this->ar_cache_exists[] = 'select';
+					$this->ar_cache_no_escape[] = $escape;
 				}
 			}
 		}
@@ -197,7 +195,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	protected function _max_min_avg_sum($select = '', $alias = '', $type = 'MAX')
 	{
-		if ( ! is_string($select) OR $select === '')
+		if ( ! is_string($select) OR $select == '')
 		{
 			$this->display_error('db_invalid_query');
 		}
@@ -209,20 +207,18 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			show_error('Invalid function type: '.$type);
 		}
 
-		if ($alias === '')
+		if ($alias == '')
 		{
 			$alias = $this->_create_alias_from_table(trim($select));
 		}
 
-		$sql = $this->protect_identifiers($type.'('.trim($select).')').' AS '.$this->escape_identifiers(trim($alias));
+		$sql = $this->_protect_identifiers($type.'('.trim($select).')').' AS '.$this->_protect_identifiers(trim($alias));
+		$this->ar_select[] = $sql;
 
-		$this->qb_select[] = $sql;
-		$this->qb_no_escape[] = NULL;
-
-		if ($this->qb_caching === TRUE)
+		if ($this->ar_caching === TRUE)
 		{
-			$this->qb_cache_select[] = $sql;
-			$this->qb_cache_exists[] = 'select';
+			$this->ar_cache_select[] = $sql;
+			$this->ar_cache_exists[] = 'select';
 		}
 
 		return $this;
@@ -240,8 +236,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	{
 		if (strpos($item, '.') !== FALSE)
 		{
-			$item = explode('.', $item);
-			return end($item);
+			return end(explode('.', $item));
 		}
 
 		return $item;
@@ -259,7 +254,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function distinct($val = TRUE)
 	{
-		$this->qb_distinct = is_bool($val) ? $val : TRUE;
+		$this->ar_distinct = (is_bool($val)) ? $val : TRUE;
 		return $this;
 	}
 
@@ -275,7 +270,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function from($from)
 	{
-		foreach ((array) $from as $val)
+		foreach ((array)$from as $val)
 		{
 			if (strpos($val, ',') !== FALSE)
 			{
@@ -283,13 +278,12 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 				{
 					$v = trim($v);
 					$this->_track_aliases($v);
+					$v = $this->ar_from[] = $this->_protect_identifiers($v, TRUE, NULL, FALSE);
 
-					$this->qb_from[] = $v = $this->protect_identifiers($v, TRUE, NULL, FALSE);
-
-					if ($this->qb_caching === TRUE)
+					if ($this->ar_caching === TRUE)
 					{
-						$this->qb_cache_from[] = $v;
-						$this->qb_cache_exists[] = 'from';
+						$this->ar_cache_from[] = $v;
+						$this->ar_cache_exists[] = 'from';
 					}
 				}
 			}
@@ -298,15 +292,14 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 				$val = trim($val);
 
 				// Extract any aliases that might exist. We use this information
-				// in the protect_identifiers to know whether to add a table prefix
+				// in the _protect_identifiers to know whether to add a table prefix
 				$this->_track_aliases($val);
+				$this->ar_from[] = $val = $this->_protect_identifiers($val, TRUE, NULL, FALSE);
 
-				$this->qb_from[] = $val = $this->protect_identifiers($val, TRUE, NULL, FALSE);
-
-				if ($this->qb_caching === TRUE)
+				if ($this->ar_caching === TRUE)
 				{
-					$this->qb_cache_from[] = $val;
-					$this->qb_cache_exists[] = 'from';
+					$this->ar_cache_from[] = $val;
+					$this->ar_cache_exists[] = 'from';
 				}
 			}
 		}
@@ -324,16 +317,15 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	string
 	 * @param	string	the join condition
 	 * @param	string	the type of join
-	 * @param	string	whether not to try to escape identifiers
 	 * @return	object
 	 */
-	public function join($table, $cond, $type = '', $escape = NULL)
+	public function join($table, $cond, $type = '')
 	{
-		if ($type !== '')
+		if ($type != '')
 		{
 			$type = strtoupper(trim($type));
 
-			if ( ! in_array($type, array('LEFT', 'RIGHT', 'OUTER', 'INNER', 'LEFT OUTER', 'RIGHT OUTER'), TRUE))
+			if ( ! in_array($type, array('LEFT', 'RIGHT', 'OUTER', 'INNER', 'LEFT OUTER', 'RIGHT OUTER')))
 			{
 				$type = '';
 			}
@@ -344,59 +336,22 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		// Extract any aliases that might exist. We use this information
-		// in the protect_identifiers to know whether to add a table prefix
+		// in the _protect_identifiers to know whether to add a table prefix
 		$this->_track_aliases($table);
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
-		// Split multiple conditions
-		if ($escape === TRUE && preg_match_all('/\sAND\s|\sOR\s/i', $cond, $m, PREG_SET_ORDER | PREG_OFFSET_CAPTURE))
+		// Strip apart the condition and protect the identifiers
+		if (preg_match('/([\w\.]+)([\W\s]+)(.+)/', $cond, $match))
 		{
-			$newcond = '';
-			$m[0][] = array('', strlen($cond));
-
-			for ($i = 0, $c = count($m[0]), $s = 0;
-				$i < $c;
-				$s += $m[0][$i][1] + strlen($m[0][$i][0]), $i++)
-			{
-				$temp = substr($cond, $s, $m[0][$i][1]);
-
-				$newcond .= preg_match('/([\[\w\.-]+)([\W\s]+)(.+)/i', $temp, $match)
-						? $this->protect_identifiers($match[1]).$match[2].$this->protect_identifiers($match[3])
-						: $temp;
-
-				$newcond .= $m[0][$i][0];
-			}
-
-			$cond = ' ON '.$newcond;
-		}
-		// Split apart the condition and protect the identifiers
-		elseif ($escape === TRUE && preg_match('/([\[\w\.-]+)([\W\s]+)(.+)/i', $cond, $match))
-		{
-			$cond = ' ON '.$this->protect_identifiers($match[1]).$match[2].$this->protect_identifiers($match[3]);
-		}
-		elseif ( ! $this->_has_operator($cond))
-		{
-			$cond = ' USING ('.($escape ? $this->escape_identifiers($cond) : $cond).')';
-		}
-		else
-		{
-			$cond = ' ON '.$cond;
-		}
-
-		// Do we want to escape the table name?
-		if ($escape === TRUE)
-		{
-			$table = $this->protect_identifiers($table, TRUE, NULL, FALSE);
+			$cond = $this->_protect_identifiers($match[1]).$match[2].$this->_protect_identifiers($match[3]);
 		}
 
 		// Assemble the JOIN statement
-		$this->qb_join[] = $join = $type.'JOIN '.$table.$cond;
+		$this->ar_join[] = $join = $type.'JOIN '.$this->_protect_identifiers($table, TRUE, NULL, FALSE).' ON '.$cond;
 
-		if ($this->qb_caching === TRUE)
+		if ($this->ar_caching === TRUE)
 		{
-			$this->qb_cache_join[] = $join;
-			$this->qb_cache_exists[] = 'join';
+			$this->ar_cache_join[] = $join;
+			$this->ar_cache_exists[] = 'join';
 		}
 
 		return $this;
@@ -412,10 +367,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	mixed
 	 * @param	mixed
-	 * @param	bool
 	 * @return	object
 	 */
-	public function where($key, $value = NULL, $escape = NULL)
+	public function where($key, $value = NULL, $escape = TRUE)
 	{
 		return $this->_where($key, $value, 'AND ', $escape);
 	}
@@ -430,10 +384,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	mixed
 	 * @param	mixed
-	 * @param	bool
 	 * @return	object
 	 */
-	public function or_where($key, $value = NULL, $escape = NULL)
+	public function or_where($key, $value = NULL, $escape = TRUE)
 	{
 		return $this->_where($key, $value, 'OR ', $escape);
 	}
@@ -448,7 +401,6 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	mixed
 	 * @param	mixed
 	 * @param	string
-	 * @param	mixed
 	 * @return	object
 	 */
 	protected function _where($key, $value = NULL, $type = 'AND ', $escape = NULL)
@@ -461,15 +413,14 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		// If the escape value was not set will will base it on the global setting
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
+		if ( ! is_bool($escape))
+		{
+			$escape = $this->_protect_identifiers;
+		}
 
 		foreach ($key as $k => $v)
 		{
-			$prefix = (count($this->qb_where) === 0 && count($this->qb_cache_where) === 0) ? '' : $type;
-
-			$k = (($op = $this->_get_operator($k)) !== FALSE)
-				? $this->protect_identifiers(substr($k, 0, strpos($k, $op)), FALSE, $escape).strstr($k, $op)
-				: $this->protect_identifiers($k, FALSE, $escape);
+			$prefix = (count($this->ar_where) === 0 AND count($this->ar_cache_where) === 0) ? '' : $type;
 
 			if (is_null($v) && ! $this->_has_operator($k))
 			{
@@ -481,6 +432,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			{
 				if ($escape === TRUE)
 				{
+					$k = $this->_protect_identifiers($k, FALSE, $escape);
 					$v = ' '.$this->escape($v);
 				}
 
@@ -489,12 +441,16 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 					$k .= ' = ';
 				}
 			}
-
-			$this->qb_where[] = $prefix.$k.$v;
-			if ($this->qb_caching === TRUE)
+			else
 			{
-				$this->qb_cache_where[] = $prefix.$k.$v;
-				$this->qb_cache_exists[] = 'where';
+				$k = $this->_protect_identifiers($k, FALSE, $escape);
+			}
+
+			$this->ar_where[] = $prefix.$k.$v;
+			if ($this->ar_caching === TRUE)
+			{
+				$this->ar_cache_where[] = $prefix.$k.$v;
+				$this->ar_cache_exists[] = 'where';
 			}
 
 		}
@@ -514,9 +470,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	array	The values searched on
 	 * @return	object
 	 */
-	public function where_in($key = NULL, $values = NULL, $escape = NULL)
+	public function where_in($key = NULL, $values = NULL)
 	{
-		return $this->_where_in($key, $values, FALSE, 'AND ', $escape);
+		return $this->_where_in($key, $values);
 	}
 
 	// --------------------------------------------------------------------
@@ -531,9 +487,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	array	The values searched on
 	 * @return	object
 	 */
-	public function or_where_in($key = NULL, $values = NULL, $escape = NULL)
+	public function or_where_in($key = NULL, $values = NULL)
 	{
-		return $this->_where_in($key, $values, FALSE, 'OR ', $escape);
+		return $this->_where_in($key, $values, FALSE, 'OR ');
 	}
 
 	// --------------------------------------------------------------------
@@ -548,9 +504,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	array	The values searched on
 	 * @return	object
 	 */
-	public function where_not_in($key = NULL, $values = NULL, $escape = NULL)
+	public function where_not_in($key = NULL, $values = NULL)
 	{
-		return $this->_where_in($key, $values, TRUE, 'AND ', $escape);
+		return $this->_where_in($key, $values, TRUE);
 	}
 
 	// --------------------------------------------------------------------
@@ -565,9 +521,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	array	The values searched on
 	 * @return	object
 	 */
-	public function or_where_not_in($key = NULL, $values = NULL, $escape = NULL)
+	public function or_where_not_in($key = NULL, $values = NULL)
 	{
-		return $this->_where_in($key, $values, TRUE, 'OR ', $escape);
+		return $this->_where_in($key, $values, TRUE, 'OR ');
 	}
 
 	// --------------------------------------------------------------------
@@ -579,15 +535,15 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	string	The field to search
 	 * @param	array	The values searched on
-	 * @param	bool	If the statement would be IN or NOT IN
+	 * @param	boolean	If the statement would be IN or NOT IN
 	 * @param	string
 	 * @return	object
 	 */
-	protected function _where_in($key = NULL, $values = NULL, $not = FALSE, $type = 'AND ', $escape = NULL)
+	protected function _where_in($key = NULL, $values = NULL, $not = FALSE, $type = 'AND ')
 	{
 		if ($key === NULL OR $values === NULL)
 		{
-			return $this;
+			return;
 		}
 
 		$type = $this->_group_get_type($type);
@@ -597,26 +553,24 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$values = array($values);
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
 		$not = ($not) ? ' NOT' : '';
 
 		foreach ($values as $value)
 		{
-			$this->qb_wherein[] = $this->escape($value);
+			$this->ar_wherein[] = $this->escape($value);
 		}
 
-		$prefix = (count($this->qb_where) === 0) ? '' : $type;
-		$this->qb_where[] = $where_in = $prefix.$this->protect_identifiers($key, FALSE, $escape).$not.' IN ('.implode(', ', $this->qb_wherein).') ';
+		$prefix = (count($this->ar_where) === 0) ? '' : $type;
+		$this->ar_where[] = $where_in = $prefix.$this->_protect_identifiers($key).$not.' IN ('.implode(', ', $this->ar_wherein).') ';
 
-		if ($this->qb_caching === TRUE)
+		if ($this->ar_caching === TRUE)
 		{
-			$this->qb_cache_where[] = $where_in;
-			$this->qb_cache_exists[] = 'where';
+			$this->ar_cache_where[] = $where_in;
+			$this->ar_cache_exists[] = 'where';
 		}
 
 		// reset the array for multiple calls
-		$this->qb_wherein = array();
+		$this->ar_wherein = array();
 		return $this;
 	}
 
@@ -711,38 +665,38 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 		foreach ($field as $k => $v)
 		{
-			$k = $this->protect_identifiers($k);
-			$prefix = (count($this->qb_like) === 0) ? '' : $type;
+			$k = $this->_protect_identifiers($k);
+			$prefix = (count($this->ar_like) === 0) ? '' : $type;
 			$v = $this->escape_like_str($v);
 
 			if ($side === 'none')
 			{
-				$like_statement = "{$prefix} $k $not LIKE '{$v}'";
+				$like_statement = $prefix." $k $not LIKE '{$v}'";
 			}
 			elseif ($side === 'before')
 			{
-				$like_statement = "{$prefix} $k $not LIKE '%{$v}'";
+				$like_statement = $prefix." $k $not LIKE '%{$v}'";
 			}
 			elseif ($side === 'after')
 			{
-				$like_statement = "{$prefix} $k $not LIKE '{$v}%'";
+				$like_statement = $prefix." $k $not LIKE '{$v}%'";
 			}
 			else
 			{
-				$like_statement = "{$prefix} $k $not LIKE '%{$v}%'";
+				$like_statement = $prefix." $k $not LIKE '%{$v}%'";
 			}
 
 			// some platforms require an escape sequence definition for LIKE wildcards
-			if ($this->_like_escape_str !== '')
+			if ($this->_like_escape_str != '')
 			{
 				$like_statement = $like_statement.sprintf($this->_like_escape_str, $this->_like_escape_chr);
 			}
 
-			$this->qb_like[] = $like_statement;
-			if ($this->qb_caching === TRUE)
+			$this->ar_like[] = $like_statement;
+			if ($this->ar_caching === TRUE)
 			{
-				$this->qb_cache_like[] = $like_statement;
-				$this->qb_cache_exists[] = 'like';
+				$this->ar_cache_like[] = $like_statement;
+				$this->ar_cache_exists[] = 'like';
 			}
 
 		}
@@ -762,14 +716,13 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	public function group_start($not = '', $type = 'AND ')
 	{
 		$type = $this->_group_get_type($type);
+		$this->ar_where_group_started = TRUE;
+		$prefix = (count($this->ar_where) === 0 AND count($this->ar_cache_where) === 0) ? '' : $type;
+		$this->ar_where[] = $value = $prefix.$not.str_repeat(' ', ++$this->ar_where_group_count).' (';
 
-		$this->qb_where_group_started = TRUE;
-		$prefix = (count($this->qb_where) === 0 && count($this->qb_cache_where) === 0) ? '' : $type;
-		$this->qb_where[] = $value = $prefix.$not.str_repeat(' ', ++$this->qb_where_group_count).' (';
-
-		if ($this->qb_caching)
+		if ($this->ar_caching)
 		{
-			$this->qb_cache_where[] = $value;
+			$this->ar_cache_where[] = $value;
 		}
 
 		return $this;
@@ -820,12 +773,12 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function group_end()
 	{
-		$this->qb_where_group_started = FALSE;
-		$this->qb_where[] = $value = str_repeat(' ', $this->qb_where_group_count--) . ')';
+		$this->ar_where_group_started = FALSE;
+		$this->ar_where[] = $value = str_repeat(' ', $this->ar_where_group_count--) . ')';
 
-		if ($this->qb_caching)
+		if ($this->ar_caching)
 		{
-			$this->qb_cache_where[] = $value;
+			$this->ar_cache_where[] = $value;
 		}
 
 		return $this;
@@ -843,10 +796,10 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	protected function _group_get_type($type)
 	{
-		if ($this->qb_where_group_started)
+		if ($this->ar_where_group_started)
 		{
 			$type = '';
-			$this->qb_where_group_started = FALSE;
+			$this->ar_where_group_started = FALSE;
 		}
 
 		return $type;
@@ -871,14 +824,14 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		{
 			$val = trim($val);
 
-			if ($val !== '')
+			if ($val != '')
 			{
-				$this->qb_groupby[] = $val = $this->protect_identifiers($val);
+				$this->ar_groupby[] = $val = $this->_protect_identifiers($val);
 
-				if ($this->qb_caching === TRUE)
+				if ($this->ar_caching === TRUE)
 				{
-					$this->qb_cache_groupby[] = $val;
-					$this->qb_cache_exists[] = 'groupby';
+					$this->ar_cache_groupby[] = $val;
+					$this->ar_cache_exists[] = 'groupby';
 				}
 			}
 		}
@@ -895,10 +848,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @param	bool
 	 * @return	object
 	 */
-	public function having($key, $value = '', $escape = NULL)
+	public function having($key, $value = '', $escape = TRUE)
 	{
 		return $this->_having($key, $value, 'AND ', $escape);
 	}
@@ -912,10 +864,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @param	bool
 	 * @return	object
 	 */
-	public function or_having($key, $value = '', $escape = NULL)
+	public function or_having($key, $value = '', $escape = TRUE)
 	{
 		return $this->_having($key, $value, 'OR ', $escape);
 	}
@@ -929,42 +880,39 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @param	string
-	 * @param	bool
 	 * @return	object
 	 */
-	protected function _having($key, $value = '', $type = 'AND ', $escape = NULL)
+	protected function _having($key, $value = '', $type = 'AND ', $escape = TRUE)
 	{
 		if ( ! is_array($key))
 		{
 			$key = array($key => $value);
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
 		foreach ($key as $k => $v)
 		{
-			$prefix = (count($this->qb_having) === 0) ? '' : $type;
+			$prefix = (count($this->ar_having) === 0) ? '' : $type;
 
-			$k = $this->_has_operator($k)
-				? $this->protect_identifiers(substr($k, 0, strpos(rtrim($k), ' ')), FALSE, $escape).strchr(rtrim($k), ' ')
-				: $this->protect_identifiers($k, FALSE, $escape);
+			if ($escape === TRUE)
+			{
+				$k = $this->_protect_identifiers($k);
+			}
 
 			if ( ! $this->_has_operator($k))
 			{
 				$k .= ' = ';
 			}
 
-			if ($v !== '')
+			if ($v != '')
 			{
 				$v = ' '.$this->escape($v);
 			}
 
-			$this->qb_having[] = $prefix.$k.$v;
-			if ($this->qb_caching === TRUE)
+			$this->ar_having[] = $prefix.$k.$v;
+			if ($this->ar_caching === TRUE)
 			{
-				$this->qb_cache_having[] = $prefix.$k.$v;
-				$this->qb_cache_exists[] = 'having';
+				$this->ar_cache_having[] = $prefix.$k.$v;
+				$this->ar_cache_exists[] = 'having';
 			}
 		}
 
@@ -981,31 +929,28 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	bool	enable field name escaping
 	 * @return	object
 	 */
-	public function order_by($orderby, $direction = '', $escape = NULL)
+	public function order_by($orderby, $direction = '', $escape = TRUE)
 	{
 		if (strtolower($direction) === 'random')
 		{
 			$orderby = ''; // Random results want or don't need a field name
 			$direction = $this->_random_keyword;
 		}
-		elseif (trim($direction) !== '')
+		elseif (trim($direction) != '')
 		{
-			$direction = in_array(strtoupper(trim($direction)), array('ASC', 'DESC'), TRUE) ? ' '.$direction : ' ASC';
+			$direction = (in_array(strtoupper(trim($direction)), array('ASC', 'DESC'), TRUE)) ? ' '.$direction : ' ASC';
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
 
-		if ($escape === TRUE && strpos($orderby, ',') !== FALSE)
+		if ((strpos($orderby, ',') !== FALSE) && $escape === TRUE)
 		{
 			$temp = array();
 			foreach (explode(',', $orderby) as $part)
 			{
 				$part = trim($part);
-				if ( ! in_array($part, $this->qb_aliased_tables))
+				if ( ! in_array($part, $this->ar_aliased_tables))
 				{
-					$part = preg_match('/^(.+)\s+(ASC|DESC)$/i', $part, $matches)
-						? $this->protect_identifiers(rtrim($matches[1])).' '.$matches[2]
-						: $this->protect_identifiers($part);
+					$part = $this->_protect_identifiers(trim($part));
 				}
 
 				$temp[] = $part;
@@ -1013,19 +958,20 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 			$orderby = implode(', ', $temp);
 		}
-		elseif ($direction !== $this->_random_keyword && $escape === TRUE)
+		elseif ($direction != $this->_random_keyword)
 		{
-			$orderby = preg_match('/^(.+)\s+(ASC|DESC)$/i', $orderby, $matches)
-				? $this->protect_identifiers(rtrim($matches[1])).' '.$matches[2]
-				: $this->protect_identifiers($orderby);
+			if ($escape === TRUE)
+			{
+				$orderby = $this->_protect_identifiers($orderby);
+			}
 		}
 
-		$this->qb_orderby[] = $orderby_statement = $orderby.$direction;
+		$this->ar_orderby[] = $orderby_statement = $orderby.$direction;
 
-		if ($this->qb_caching === TRUE)
+		if ($this->ar_caching === TRUE)
 		{
-			$this->qb_cache_orderby[] = $orderby_statement;
-			$this->qb_cache_exists[] = 'orderby';
+			$this->ar_cache_orderby[] = $orderby_statement;
+			$this->ar_cache_exists[] = 'orderby';
 		}
 
 		return $this;
@@ -1036,17 +982,17 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Sets the LIMIT value
 	 *
-	 * @param	int	the limit value
-	 * @param	int	the offset value
+	 * @param	integer	the limit value
+	 * @param	integer	the offset value
 	 * @return	object
 	 */
 	public function limit($value, $offset = NULL)
 	{
-		$this->qb_limit = (int) $value;
+		$this->ar_limit = (int) $value;
 
-		if ( ! empty($offset))
+		if ( ! is_null($offset))
 		{
-			$this->qb_offset = (int) $offset;
+			$this->ar_offset = (int) $offset;
 		}
 
 		return $this;
@@ -1057,28 +1003,26 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Sets the OFFSET value
 	 *
-	 * @param	int	the offset value
+	 * @param	integer	the offset value
 	 * @return	object
 	 */
 	public function offset($offset)
 	{
-		$this->qb_offset = (int) $offset;
+		$this->ar_offset = (int) $offset;
 		return $this;
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * The "set" function.
-	 *
-	 * Allows key/value pairs to be set for inserting or updating
+	 * The "set" function.  Allows key/value pairs to be set for inserting or updating
 	 *
 	 * @param	mixed
 	 * @param	string
-	 * @param	bool
+	 * @param	boolean
 	 * @return	object
 	 */
-	public function set($key, $value = '', $escape = NULL)
+	public function set($key, $value = '', $escape = TRUE)
 	{
 		$key = $this->_object_to_array($key);
 
@@ -1087,12 +1031,16 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$key = array($key => $value);
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
 		foreach ($key as $k => $v)
 		{
-			$this->qb_set[$this->protect_identifiers($k, FALSE, $escape)] = ($escape)
-				? $this->escape($v) : $v;
+			if ($escape === FALSE)
+			{
+				$this->ar_set[$this->_protect_identifiers($k)] = $v;
+			}
+			else
+			{
+				$this->ar_set[$this->_protect_identifiers($k, FALSE, TRUE)] = $this->escape($v);
+			}
 		}
 
 		return $this;
@@ -1105,19 +1053,20 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * Compiles a SELECT query string and returns the sql.
 	 *
+	 * @access	public
 	 * @param	string	the table name to select from (optional)
-	 * @param	bool	TRUE: resets QB values; FALSE: leave QB vaules alone
+	 * @param	boolean	TRUE: resets AR values; FALSE: leave AR vaules alone
 	 * @return	string
 	 */
 	public function get_compiled_select($table = '', $reset = TRUE)
 	{
-		if ($table !== '')
+		if ($table != '')
 		{
 			$this->_track_aliases($table);
 			$this->from($table);
 		}
 
-		$select = $this->_compile_select();
+		$select =  $this->_compile_select();
 
 		if ($reset === TRUE)
 		{
@@ -1140,15 +1089,15 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	string	the offset clause
 	 * @return	object
 	 */
-	public function get($table = '', $limit = NULL, $offset = NULL)
+	public function get($table = '', $limit = null, $offset = null)
 	{
-		if ($table !== '')
+		if ($table != '')
 		{
 			$this->_track_aliases($table);
 			$this->from($table);
 		}
 
-		if ( ! empty($limit))
+		if ( ! is_null($limit))
 		{
 			$this->limit($limit, $offset);
 		}
@@ -1158,26 +1107,24 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		return $result;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * "Count All Results" query
 	 *
 	 * Generates a platform-specific query string that counts all records
-	 * returned by an Query Builder query.
+	 * returned by an Active Record query.
 	 *
 	 * @param	string
 	 * @return	string
 	 */
 	public function count_all_results($table = '')
 	{
-		if ($table !== '')
+		if ($table != '')
 		{
 			$this->_track_aliases($table);
 			$this->from($table);
 		}
 
-		$result = $this->query($this->_compile_select($this->_count_string.$this->protect_identifiers('numrows')));
+		$result = $this->query($this->_compile_select($this->_count_string.$this->_protect_identifiers('numrows')));
 		$this->_reset_select();
 
 		if ($result->num_rows() === 0)
@@ -1188,7 +1135,6 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		$row = $result->row();
 		return (int) $row->numrows;
 	}
-
 	// --------------------------------------------------------------------
 
 	/**
@@ -1203,7 +1149,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function get_where($table = '', $where = null, $limit = null, $offset = null)
 	{
-		if ($table !== '')
+		if ($table != '')
 		{
 			$this->from($table);
 		}
@@ -1213,7 +1159,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$this->where($where);
 		}
 
-		if ( ! empty($limit))
+		if ( ! is_null($limit))
 		{
 			$this->limit($limit, $offset);
 		}
@@ -1241,7 +1187,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$this->set_insert_batch($set);
 		}
 
-		if (count($this->qb_set) === 0)
+		if (count($this->ar_set) === 0)
 		{
 			if ($this->db_debug)
 			{
@@ -1251,20 +1197,20 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			return FALSE;
 		}
 
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 
 		// Batch this baby
-		for ($i = 0, $total = count($this->qb_set); $i < $total; $i += 100)
+		for ($i = 0, $total = count($this->ar_set); $i < $total; $i += 100)
 		{
-			$this->query($this->_insert_batch($this->protect_identifiers($table, TRUE, NULL, FALSE), $this->qb_keys, array_slice($this->qb_set, $i, 100)));
+			$this->query($this->_insert_batch($this->_protect_identifiers($table, TRUE, NULL, FALSE), $this->ar_keys, array_slice($this->ar_set, $i, 100)));
 		}
 
 		$this->_reset_write();
@@ -1274,31 +1220,14 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Insert_batch statement
-	 *
-	 * Generates a platform-specific insert string from the supplied data.
-	 *
-	 * @param	string	the table name
-	 * @param	array	the insert keys
-	 * @param	array	the insert values
-	 * @return	string
-	 */
-	protected function _insert_batch($table, $keys, $values)
-	{
-		return 'INSERT INTO '.$table.' ('.implode(', ', $keys).') VALUES '.implode(', ', $values);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
 	 * The "set_insert_batch" function.  Allows key/value pairs to be set for batch inserts
 	 *
 	 * @param	mixed
 	 * @param	string
-	 * @param	bool
+	 * @param	boolean
 	 * @return	object
 	 */
-	public function set_insert_batch($key, $value = '', $escape = NULL)
+	public function set_insert_batch($key, $value = '', $escape = TRUE)
 	{
 		$key = $this->_object_to_array_batch($key);
 
@@ -1307,24 +1236,25 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$key = array($key => $value);
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
-		$keys = array_keys($this->_object_to_array(current($key)));
+		$keys = array_keys(current($key));
 		sort($keys);
 
 		foreach ($key as $row)
 		{
-			$row = $this->_object_to_array($row);
 			if (count(array_diff($keys, array_keys($row))) > 0 OR count(array_diff(array_keys($row), $keys)) > 0)
 			{
 				// batch function above returns an error on an empty array
-				$this->qb_set[] = array();
+				$this->ar_set[] = array();
 				return;
 			}
 
 			ksort($row); // puts $row in the same order as our keys
 
-			if ($escape !== FALSE)
+			if ($escape === FALSE)
+			{
+				$this->ar_set[] =  '('.implode(',', $row).')';
+			}
+			else
 			{
 				$clean = array();
 				foreach ($row as $value)
@@ -1332,15 +1262,13 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 					$clean[] = $this->escape($value);
 				}
 
-				$row = $clean;
+				$this->ar_set[] =  '('.implode(',', $clean).')';
 			}
-
-			$this->qb_set[] =  '('.implode(',', $row).')';
 		}
 
 		foreach ($keys as $k)
 		{
-			$this->qb_keys[] = $this->protect_identifiers($k, FALSE, $escape);
+			$this->ar_keys[] = $this->_protect_identifiers($k);
 		}
 
 		return $this;
@@ -1353,8 +1281,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * Compiles an insert query and returns the sql
 	 *
+	 * @access	public
 	 * @param	string	the table to insert into
-	 * @param	bool	TRUE: reset QB values; FALSE: leave QB values alone
+	 * @param	boolean	TRUE: reset AR values; FALSE: leave AR values alone
 	 * @return	string
 	 */
 	public function get_compiled_insert($table = '', $reset = TRUE)
@@ -1365,11 +1294,11 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		$sql = $this->_insert(
-			$this->protect_identifiers(
-				$this->qb_from[0], TRUE, NULL, FALSE
+			$this->_protect_identifiers(
+				$this->ar_from[0], TRUE, NULL, FALSE
 			),
-			array_keys($this->qb_set),
-			array_values($this->qb_set)
+			array_keys($this->ar_set),
+			array_values($this->ar_set)
 		);
 
 		if ($reset === TRUE)
@@ -1387,6 +1316,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * Compiles an insert string and runs the query
 	 *
+	 * @access	public
 	 * @param	string	the table to insert data into
 	 * @param	array	an associative array of insert values
 	 * @return	object
@@ -1404,32 +1334,15 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		$sql = $this->_insert(
-			$this->protect_identifiers(
-				$this->qb_from[0], TRUE, NULL, FALSE
+			$this->_protect_identifiers(
+				$this->ar_from[0], TRUE, NULL, FALSE
 			),
-			array_keys($this->qb_set),
-			array_values($this->qb_set)
+			array_keys($this->ar_set),
+			array_values($this->ar_set)
 		);
 
 		$this->_reset_write();
 		return $this->query($sql);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Insert statement
-	 *
-	 * Generates a platform-specific insert string from the supplied data
-	 *
-	 * @param	string	the table name
-	 * @param	array	the insert keys
-	 * @param	array	the insert values
-	 * @return	string
-	 */
-	protected function _insert($table, $keys, $values)
-	{
-		return 'INSERT INTO '.$table.' ('.implode(', ', $keys).') VALUES ('.implode(', ', $values).')';
 	}
 
 	// --------------------------------------------------------------------
@@ -1441,23 +1354,27 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * validate that the there data is actually being set and that table
 	 * has been chosen to be inserted into.
 	 *
+	 * @access	public
 	 * @param	string	the table to insert data into
 	 * @return	string
 	 */
 	protected function _validate_insert($table = '')
 	{
-		if (count($this->qb_set) === 0)
+		if (count($this->ar_set) === 0)
 		{
 			return ($this->db_debug) ? $this->display_error('db_must_use_set') : FALSE;
 		}
 
-		if ($table !== '')
+		if ($table == '')
 		{
-			$this->qb_from[0] = $table;
+			if ( ! isset($this->ar_from[0]))
+			{
+				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
+			}
 		}
-		elseif ( ! isset($this->qb_from[0]))
+		else
 		{
-			return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
+			$this->ar_from[0] = $table;
 		}
 
 		return TRUE;
@@ -1481,60 +1398,24 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$this->set($set);
 		}
 
-		if (count($this->qb_set) === 0)
+		if (count($this->ar_set) === 0)
 		{
 			return ($this->db_debug) ? $this->display_error('db_must_use_set') : FALSE;
 		}
 
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 
-		$sql = $this->_replace($this->protect_identifiers($table, TRUE, NULL, FALSE), array_keys($this->qb_set), array_values($this->qb_set));
-
+		$sql = $this->_replace($this->_protect_identifiers($table, TRUE, NULL, FALSE), array_keys($this->ar_set), array_values($this->ar_set));
 		$this->_reset_write();
 		return $this->query($sql);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Replace statement
-	 *
-	 * Generates a platform-specific replace string from the supplied data
-	 *
-	 * @param	string	the table name
-	 * @param	array	the insert keys
-	 * @param	array	the insert values
-	 * @return	string
-	 */
-	protected function _replace($table, $keys, $values)
-	{
-		return 'REPLACE INTO '.$table.' ('.implode(', ', $keys).') VALUES ('.implode(', ', $values).')';
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * From Tables
-	 *
-	 * This public function implicitly groups FROM tables so there is no confusion
-	 * about operator precedence in harmony with SQL standards
-	 *
-	 * @param       array
-	 * @return      string
-	 */
-	protected function _from_tables($tables)
-	{
-		is_array($tables) OR $tables = array($tables);
-
-		return (count($tables) === 1) ? $tables[0] : '('.implode(', ', $tables).')';
 	}
 
 	// --------------------------------------------------------------------
@@ -1544,8 +1425,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * Compiles an update query and returns the sql
 	 *
+	 * @access	public
 	 * @param	string	the table to update
-	 * @param	bool	TRUE: reset QB values; FALSE: leave QB values alone
+	 * @param	boolean	TRUE: reset AR values; FALSE: leave AR values alone
 	 * @return	string
 	 */
 	public function get_compiled_update($table = '', $reset = TRUE)
@@ -1558,7 +1440,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			return FALSE;
 		}
 
-		$sql = $this->_update($this->protect_identifiers($this->qb_from[0], TRUE, NULL, FALSE), $this->qb_set, $this->qb_where, $this->qb_orderby, $this->qb_limit);
+		$sql = $this->_update($this->_protect_identifiers($this->ar_from[0], TRUE, NULL, FALSE), $this->ar_set, $this->ar_where, $this->ar_orderby, $this->ar_limit);
 
 		if ($reset === TRUE)
 		{
@@ -1595,55 +1477,19 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			return FALSE;
 		}
 
-		if ($where !== NULL)
+		if ($where != NULL)
 		{
 			$this->where($where);
 		}
 
-		if ( ! empty($limit))
+		if ($limit != NULL)
 		{
 			$this->limit($limit);
 		}
 
-		$sql = $this->_update($this->protect_identifiers($this->qb_from[0], TRUE, NULL, FALSE), $this->qb_set, $this->qb_where, $this->qb_orderby, $this->qb_limit, $this->qb_like);
-
+		$sql = $this->_update($this->_protect_identifiers($this->ar_from[0], TRUE, NULL, FALSE), $this->ar_set, $this->ar_where, $this->ar_orderby, $this->ar_limit, $this->ar_like);
 		$this->_reset_write();
 		return $this->query($sql);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Update statement
-	 *
-	 * Generates a platform-specific update string from the supplied data
-	 *
-	 * @param	string	the table name
-	 * @param	array	the update data
-	 * @param	array	the where clause
-	 * @param	array	the orderby clause
-	 * @param	array	the limit clause
-	 * @param	array	the like clause
-	 * @return	string
-	 */
-	protected function _update($table, $values, $where, $orderby = array(), $limit = FALSE, $like = array())
-	{
-		foreach ($values as $key => $val)
-		{
-			$valstr[] = $key.' = '.$val;
-		}
-
-		$where = empty($where) ? '' : ' WHERE '.implode(' ', $where);
-
-		if ( ! empty($like))
-		{
-			$where .= ($where === '' ? ' WHERE ' : ' AND ').implode(' ', $like);
-		}
-
-		return 'UPDATE '.$table.' SET '.implode(', ', $valstr)
-			.$where
-			.(count($orderby) > 0 ? ' ORDER BY '.implode(', ', $orderby) : '')
-			.($limit ? ' LIMIT '.$limit : '');
 	}
 
 	// --------------------------------------------------------------------
@@ -1655,23 +1501,27 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * validate that data is actually being set and that a table has been
 	 * chosen to be update.
 	 *
+	 * @access	public
 	 * @param	string	the table to update data on
 	 * @return	bool
 	 */
 	protected function _validate_update($table = '')
 	{
-		if (count($this->qb_set) === 0)
+		if (count($this->ar_set) == 0)
 		{
 			return ($this->db_debug) ? $this->display_error('db_must_use_set') : FALSE;
 		}
 
-		if ($table !== '')
+		if ($table == '')
 		{
-			$this->qb_from[0] = $table;
+			if ( ! isset($this->ar_from[0]))
+			{
+				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
+			}
 		}
-		elseif ( ! isset($this->qb_from[0]))
+		else
 		{
-			return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
+			$this->ar_from[0] = $table;
 		}
 
 		return TRUE;
@@ -1704,25 +1554,25 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$this->set_update_batch($set, $index);
 		}
 
-		if (count($this->qb_set) === 0)
+		if (count($this->ar_set) === 0)
 		{
 			return ($this->db_debug) ? $this->display_error('db_must_use_set') : FALSE;
 		}
 
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 
 		// Batch this baby
-		for ($i = 0, $total = count($this->qb_set); $i < $total; $i += 100)
+		for ($i = 0, $total = count($this->ar_set); $i < $total; $i += 100)
 		{
-			$this->query($this->_update_batch($this->protect_identifiers($table, TRUE, NULL, FALSE), array_slice($this->qb_set, $i, 100), $this->protect_identifiers($index), $this->qb_where));
+			$this->query($this->_update_batch($this->_protect_identifiers($table, TRUE, NULL, FALSE), array_slice($this->ar_set, $i, 100), $this->_protect_identifiers($index), $this->ar_where));
 		}
 
 		$this->_reset_write();
@@ -1736,10 +1586,10 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @param	array
 	 * @param	string
-	 * @param	bool
+	 * @param	boolean
 	 * @return	object
 	 */
-	public function set_update_batch($key, $index = '', $escape = NULL)
+	public function set_update_batch($key, $index = '', $escape = TRUE)
 	{
 		$key = $this->_object_to_array_batch($key);
 
@@ -1748,28 +1598,30 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			// @todo error
 		}
 
-		is_bool($escape) OR $escape = $this->_protect_identifiers;
-
 		foreach ($key as $k => $v)
 		{
 			$index_set = FALSE;
 			$clean = array();
 			foreach ($v as $k2 => $v2)
 			{
-				if ($k2 === $index)
+				if ($k2 == $index)
 				{
 					$index_set = TRUE;
 				}
+				else
+				{
+					$not[] = $k.'-'.$v;
+				}
 
-				$clean[$this->protect_identifiers($k2, FALSE, $escape)] = ($escape === FALSE) ? $v2 : $this->escape($v2);
+				$clean[$this->_protect_identifiers($k2)] = ($escape === FALSE) ? $v2 : $this->escape($v2);
 			}
 
-			if ($index_set === FALSE)
+			if ($index_set == FALSE)
 			{
 				return $this->display_error('db_batch_missing_index');
 			}
 
-			$this->qb_set[] = $clean;
+			$this->ar_set[] = $clean;
 		}
 
 		return $this;
@@ -1787,18 +1639,18 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function empty_table($table = '')
 	{
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 		else
 		{
-			$table = $this->protect_identifiers($table, TRUE, NULL, FALSE);
+			$table = $this->_protect_identifiers($table, TRUE, NULL, FALSE);
 		}
 
 		$sql = $this->_delete($table);
@@ -1820,18 +1672,18 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function truncate($table = '')
 	{
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 		else
 		{
-			$table = $this->protect_identifiers($table, TRUE, NULL, FALSE);
+			$table = $this->_protect_identifiers($table, TRUE, NULL, FALSE);
 		}
 
 		$sql = $this->_truncate($table);
@@ -1842,30 +1694,13 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Truncate statement
-	 *
-	 * Generates a platform-specific truncate string from the supplied data
-	 *
-	 * If the database does not support the truncate() command,
-	 * then this method maps to 'DELETE FROM table'
-	 *
-	 * @param	string	the table name
-	 * @return	string
-	 */
-	protected function _truncate($table)
-	{
-		return 'TRUNCATE '.$table;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
 	 * Get DELETE query string
 	 *
 	 * Compiles a delete query string and returns the sql
 	 *
+	 * @access	public
 	 * @param	string	the table to delete from
-	 * @param	bool	TRUE: reset QB values; FALSE: leave QB values alone
+	 * @param	boolean	TRUE: reset AR values; FALSE: leave AR values alone
 	 * @return	string
 	 */
 	public function get_compiled_delete($table = '', $reset = TRUE)
@@ -1886,7 +1721,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	mixed	the table(s) to delete from. String or array
 	 * @param	mixed	the where clause
 	 * @param	mixed	the limit clause
-	 * @param	bool
+	 * @param	boolean
 	 * @return	object
 	 */
 	public function delete($table = '', $where = '', $limit = NULL, $reset_data = TRUE)
@@ -1894,14 +1729,14 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		// Combine any cached components with the current statements
 		$this->_merge_cache();
 
-		if ($table === '')
+		if ($table == '')
 		{
-			if ( ! isset($this->qb_from[0]))
+			if ( ! isset($this->ar_from[0]))
 			{
 				return ($this->db_debug) ? $this->display_error('db_must_set_table') : FALSE;
 			}
 
-			$table = $this->qb_from[0];
+			$table = $this->ar_from[0];
 		}
 		elseif (is_array($table))
 		{
@@ -1915,56 +1750,31 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 		else
 		{
-			$table = $this->protect_identifiers($table, TRUE, NULL, FALSE);
+			$table = $this->_protect_identifiers($table, TRUE, NULL, FALSE);
 		}
 
-		if ($where !== '')
+		if ($where != '')
 		{
 			$this->where($where);
 		}
 
-		if ( ! empty($limit))
+		if ($limit != NULL)
 		{
 			$this->limit($limit);
 		}
 
-		if (count($this->qb_where) === 0 && count($this->qb_wherein) === 0 && count($this->qb_like) === 0)
+		if (count($this->ar_where) === 0 && count($this->ar_wherein) === 0 && count($this->ar_like) === 0)
 		{
 			return ($this->db_debug) ? $this->display_error('db_del_must_use_where') : FALSE;
 		}
 
-		$sql = $this->_delete($table, $this->qb_where, $this->qb_like, $this->qb_limit);
+		$sql = $this->_delete($table, $this->ar_where, $this->ar_like, $this->ar_limit);
 		if ($reset_data)
 		{
 			$this->_reset_write();
 		}
 
 		return ($this->return_delete_sql === TRUE) ? $sql : $this->query($sql);
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Delete statement
-	 *
-	 * Generates a platform-specific delete string from the supplied data
-	 *
-	 * @param	string	the table name
-	 * @param	array	the where clause
-	 * @param	array	the like clause
-	 * @param	string	the limit clause
-	 * @return	string
-	 */
-	protected function _delete($table, $where = array(), $like = array(), $limit = FALSE)
-	{
-		$conditions = array();
-
-		empty($where) OR $conditions[] = implode(' ', $where);
-		empty($like) OR $conditions[] = implode(' ', $like);
-
-		return 'DELETE FROM '.$table
-			.(count($conditions) > 0 ? ' WHERE '.implode(' AND ', $conditions) : '')
-			.($limit ? ' LIMIT '.(int) $limit : '');
 	}
 
 	// --------------------------------------------------------------------
@@ -1979,7 +1789,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function dbprefix($table = '')
 	{
-		if ($table === '')
+		if ($table == '')
 		{
 			$this->display_error('db_table_name_required');
 		}
@@ -2034,15 +1844,15 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		if (strpos($table, ' ') !== FALSE)
 		{
 			// if the alias is written with the AS keyword, remove it
-			$table = preg_replace('/\s+AS\s+/i', ' ', $table);
+			$table = preg_replace('/ AS /i', ' ', $table);
 
 			// Grab the alias
 			$table = trim(strrchr($table, ' '));
 
 			// Store the alias, if it doesn't already exist
-			if ( ! in_array($table, $this->qb_aliased_tables))
+			if ( ! in_array($table, $this->ar_aliased_tables))
 			{
-				$this->qb_aliased_tables[] = $table;
+				$this->ar_aliased_tables[] = $table;
 			}
 		}
 	}
@@ -2069,9 +1879,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 		else
 		{
-			$sql = ( ! $this->qb_distinct) ? 'SELECT ' : 'SELECT DISTINCT ';
+			$sql = ( ! $this->ar_distinct) ? 'SELECT ' : 'SELECT DISTINCT ';
 
-			if (count($this->qb_select) === 0)
+			if (count($this->ar_select) === 0)
 			{
 				$sql .= '*';
 			}
@@ -2080,69 +1890,73 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 				// Cycle through the "select" portion of the query and prep each column name.
 				// The reason we protect identifiers here rather then in the select() function
 				// is because until the user calls the from() function we don't know if there are aliases
-				foreach ($this->qb_select as $key => $val)
+				foreach ($this->ar_select as $key => $val)
 				{
-					$no_escape = isset($this->qb_no_escape[$key]) ? $this->qb_no_escape[$key] : NULL;
-					$this->qb_select[$key] = $this->protect_identifiers($val, FALSE, $no_escape);
+					$no_escape = isset($this->ar_no_escape[$key]) ? $this->ar_no_escape[$key] : NULL;
+					$this->ar_select[$key] = $this->_protect_identifiers($val, FALSE, $no_escape);
 				}
 
-				$sql .= implode(', ', $this->qb_select);
+				$sql .= implode(', ', $this->ar_select);
 			}
 		}
 
 		// Write the "FROM" portion of the query
-		if (count($this->qb_from) > 0)
+		if (count($this->ar_from) > 0)
 		{
-			$sql .= "\nFROM ".$this->_from_tables($this->qb_from);
+			$sql .= "\nFROM ".$this->_from_tables($this->ar_from);
 		}
 
 		// Write the "JOIN" portion of the query
-		if (count($this->qb_join) > 0)
+		if (count($this->ar_join) > 0)
 		{
-			$sql .= "\n".implode("\n", $this->qb_join);
+			$sql .= "\n".implode("\n", $this->ar_join);
 		}
 
 		// Write the "WHERE" portion of the query
-		if (count($this->qb_where) > 0 OR count($this->qb_like) > 0)
+		if (count($this->ar_where) > 0 OR count($this->ar_like) > 0)
 		{
 			$sql .= "\nWHERE ";
 		}
 
-		$sql .= implode("\n", $this->qb_where);
+		$sql .= implode("\n", $this->ar_where);
 
 		// Write the "LIKE" portion of the query
-		if (count($this->qb_like) > 0)
+		if (count($this->ar_like) > 0)
 		{
-			if (count($this->qb_where) > 0)
+			if (count($this->ar_where) > 0)
 			{
 				$sql .= "\nAND ";
 			}
 
-			$sql .= implode("\n", $this->qb_like);
+			$sql .= implode("\n", $this->ar_like);
 		}
 
 		// Write the "GROUP BY" portion of the query
-		if (count($this->qb_groupby) > 0)
+		if (count($this->ar_groupby) > 0)
 		{
-			$sql .= "\nGROUP BY ".implode(', ', $this->qb_groupby);
+			$sql .= "\nGROUP BY ".implode(', ', $this->ar_groupby);
 		}
 
 		// Write the "HAVING" portion of the query
-		if (count($this->qb_having) > 0)
+		if (count($this->ar_having) > 0)
 		{
-			$sql .= "\nHAVING ".implode("\n", $this->qb_having);
+			$sql .= "\nHAVING ".implode("\n", $this->ar_having);
 		}
 
 		// Write the "ORDER BY" portion of the query
-		if (count($this->qb_orderby) > 0)
+		if (count($this->ar_orderby) > 0)
 		{
-			$sql .= "\nORDER BY ".implode(', ', $this->qb_orderby);
+			$sql .= "\nORDER BY ".implode(', ', $this->ar_orderby);
+			if ($this->ar_order !== FALSE)
+			{
+				$sql .= ($this->ar_order == 'desc') ? ' DESC' : ' ASC';
+			}
 		}
 
 		// Write the "LIMIT" portion of the query
-		if (is_numeric($this->qb_limit))
+		if (is_numeric($this->ar_limit))
 		{
-			return $this->_limit($sql."\n", $this->qb_limit, $this->qb_offset);
+			return $this->_limit($sql."\n", $this->ar_limit, $this->ar_offset);
 		}
 
 		return $sql;
@@ -2158,7 +1972,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	object
 	 * @return	array
 	 */
-	protected function _object_to_array($object)
+	public function _object_to_array($object)
 	{
 		if ( ! is_object($object))
 		{
@@ -2169,7 +1983,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		foreach (get_object_vars($object) as $key => $val)
 		{
 			// There are some built in keys we need to ignore for this conversion
-			if ( ! is_object($val) && ! is_array($val) && $key !== '_parent_name')
+			if ( ! is_object($val) && ! is_array($val) && $key != '_parent_name')
 			{
 				$array[$key] = $val;
 			}
@@ -2188,7 +2002,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @param	object
 	 * @return	array
 	 */
-	protected function _object_to_array_batch($object)
+	public function _object_to_array_batch($object)
 	{
 		if ( ! is_object($object))
 		{
@@ -2220,13 +2034,13 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Start Cache
 	 *
-	 * Starts QB caching
+	 * Starts AR caching
 	 *
 	 * @return	void
 	 */
 	public function start_cache()
 	{
-		$this->qb_caching = TRUE;
+		$this->ar_caching = TRUE;
 	}
 
 	// --------------------------------------------------------------------
@@ -2234,13 +2048,13 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Stop Cache
 	 *
-	 * Stops QB caching
+	 * Stops AR caching
 	 *
 	 * @return	void
 	 */
 	public function stop_cache()
 	{
-		$this->qb_caching = FALSE;
+		$this->ar_caching = FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -2248,24 +2062,25 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Flush Cache
 	 *
-	 * Empties the QB cache
+	 * Empties the AR cache
 	 *
+	 * @access	public
 	 * @return	void
 	 */
 	public function flush_cache()
 	{
 		$this->_reset_run(array(
-			'qb_cache_select'		=> array(),
-			'qb_cache_from'			=> array(),
-			'qb_cache_join'			=> array(),
-			'qb_cache_where'		=> array(),
-			'qb_cache_like'			=> array(),
-			'qb_cache_groupby'		=> array(),
-			'qb_cache_having'		=> array(),
-			'qb_cache_orderby'		=> array(),
-			'qb_cache_set'			=> array(),
-			'qb_cache_exists'		=> array(),
-			'qb_cache_no_escape'	=> array()
+			'ar_cache_select'		=> array(),
+			'ar_cache_from'			=> array(),
+			'ar_cache_join'			=> array(),
+			'ar_cache_where'		=> array(),
+			'ar_cache_like'			=> array(),
+			'ar_cache_groupby'		=> array(),
+			'ar_cache_having'		=> array(),
+			'ar_cache_orderby'		=> array(),
+			'ar_cache_set'			=> array(),
+			'ar_cache_exists'		=> array(),
+			'ar_cache_no_escape'	=> array()
 		));
 	}
 
@@ -2274,47 +2089,47 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	/**
 	 * Merge Cache
 	 *
-	 * When called, this function merges any cached QB arrays with
+	 * When called, this function merges any cached AR arrays with
 	 * locally called ones.
 	 *
 	 * @return	void
 	 */
 	protected function _merge_cache()
 	{
-		if (count($this->qb_cache_exists) === 0)
+		if (count($this->ar_cache_exists) === 0)
 		{
 			return;
 		}
 
-		foreach ($this->qb_cache_exists as $val)
+		foreach ($this->ar_cache_exists as $val)
 		{
-			$qb_variable	= 'qb_'.$val;
-			$qb_cache_var	= 'qb_cache_'.$val;
+			$ar_variable	= 'ar_'.$val;
+			$ar_cache_var	= 'ar_cache_'.$val;
 
-			if (count($this->$qb_cache_var) === 0)
+			if (count($this->$ar_cache_var) === 0)
 			{
 				continue;
 			}
 
-			$this->$qb_variable = array_unique(array_merge($this->$qb_cache_var, $this->$qb_variable));
+			$this->$ar_variable = array_unique(array_merge($this->$ar_cache_var, $this->$ar_variable));
 		}
 
 		// If we are "protecting identifiers" we need to examine the "from"
 		// portion of the query to determine if there are any aliases
-		if ($this->_protect_identifiers === TRUE && count($this->qb_cache_from) > 0)
+		if ($this->_protect_identifiers === TRUE AND count($this->ar_cache_from) > 0)
 		{
-			$this->_track_aliases($this->qb_from);
+			$this->_track_aliases($this->ar_from);
 		}
 
-		$this->qb_no_escape = $this->qb_cache_no_escape;
+		$this->ar_no_escape = $this->ar_cache_no_escape;
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Reset Query Builder values.
+	 * Reset Active Record values.
 	 *
-	 * Publicly-visible method to reset the QB values.
+	 * Publicly-visible method to reset the AR values.
 	 *
 	 * @return	void
 	 */
@@ -2327,16 +2142,16 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Resets the query builder values.  Called by the get() function
+	 * Resets the active record values.  Called by the get() function
 	 *
 	 * @param	array	An array of fields to reset
 	 * @return	void
 	 */
-	protected function _reset_run($qb_reset_items)
+	protected function _reset_run($ar_reset_items)
 	{
-		foreach ($qb_reset_items as $item => $default_value)
+		foreach ($ar_reset_items as $item => $default_value)
 		{
-			if ( ! in_array($item, $this->qb_store_array))
+			if ( ! in_array($item, $this->ar_store_array))
 			{
 				$this->$item = $default_value;
 			}
@@ -2346,27 +2161,28 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Resets the query builder values.  Called by the get() function
+	 * Resets the active record values.  Called by the get() function
 	 *
 	 * @return	void
 	 */
 	protected function _reset_select()
 	{
 		$this->_reset_run(array(
-					'qb_select'		=> array(),
-					'qb_from'		=> array(),
-					'qb_join'		=> array(),
-					'qb_where'		=> array(),
-					'qb_like'		=> array(),
-					'qb_groupby'		=> array(),
-					'qb_having'		=> array(),
-					'qb_orderby'		=> array(),
-					'qb_wherein'		=> array(),
-					'qb_aliased_tables'	=> array(),
-					'qb_no_escape'		=> array(),
-					'qb_distinct'		=> FALSE,
-					'qb_limit'		=> FALSE,
-					'qb_offset'		=> FALSE
+					'ar_select'		=> array(),
+					'ar_from'		=> array(),
+					'ar_join'		=> array(),
+					'ar_where'		=> array(),
+					'ar_like'		=> array(),
+					'ar_groupby'		=> array(),
+					'ar_having'		=> array(),
+					'ar_orderby'		=> array(),
+					'ar_wherein'		=> array(),
+					'ar_aliased_tables'	=> array(),
+					'ar_no_escape'		=> array(),
+					'ar_distinct'		=> FALSE,
+					'ar_limit'		=> FALSE,
+					'ar_offset'		=> FALSE,
+					'ar_order'		=> FALSE
 					)
 				);
 	}
@@ -2374,7 +2190,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Resets the query builder "write" values.
+	 * Resets the active record "write" values.
 	 *
 	 * Called by the insert() update() insert_batch() update_batch() and delete() functions
 	 *
@@ -2383,18 +2199,19 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	protected function _reset_write()
 	{
 		$this->_reset_run(array(
-			'qb_set'	=> array(),
-			'qb_from'	=> array(),
-			'qb_where'	=> array(),
-			'qb_like'	=> array(),
-			'qb_orderby'	=> array(),
-			'qb_keys'	=> array(),
-			'qb_limit'	=> FALSE
-			)
-		);
+					'ar_set'	=> array(),
+					'ar_from'	=> array(),
+					'ar_where'	=> array(),
+					'ar_like'	=> array(),
+					'ar_orderby'	=> array(),
+					'ar_keys'	=> array(),
+					'ar_limit'	=> FALSE,
+					'ar_order'	=> FALSE
+					)
+				);
 	}
 
 }
 
-/* End of file DB_query_builder.php */
-/* Location: ./system/database/DB_query_builder.php */
+/* End of file DB_active_rec.php */
+/* Location: ./system/database/DB_active_rec.php */

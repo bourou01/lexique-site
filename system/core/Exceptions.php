@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -25,6 +25,8 @@
  * @filesource
  */
 
+// ------------------------------------------------------------------------
+
 /**
  * Exceptions Class
  *
@@ -36,38 +38,39 @@
  */
 class CI_Exceptions {
 
+	public $action;
+	public $severity;
+	public $message;
+	public $filename;
+	public $line;
+
 	/**
 	 * Nesting level of the output buffering mechanism
 	 *
-	 * @var	int
+	 * @var int
 	 */
 	public $ob_level;
 
 	/**
 	 * List if available error levels
 	 *
-	 * @var	array
+	 * @var array
 	 */
 	public $levels = array(
-		E_ERROR			=>	'Error',
-		E_WARNING		=>	'Warning',
-		E_PARSE			=>	'Parsing Error',
-		E_NOTICE		=>	'Notice',
-		E_CORE_ERROR		=>	'Core Error',
-		E_CORE_WARNING		=>	'Core Warning',
-		E_COMPILE_ERROR		=>	'Compile Error',
-		E_COMPILE_WARNING	=>	'Compile Warning',
-		E_USER_ERROR		=>	'User Error',
-		E_USER_WARNING		=>	'User Warning',
-		E_USER_NOTICE		=>	'User Notice',
-		E_STRICT		=>	'Runtime Notice'
-	);
+				E_ERROR			=>	'Error',
+				E_WARNING		=>	'Warning',
+				E_PARSE			=>	'Parsing Error',
+				E_NOTICE		=>	'Notice',
+				E_CORE_ERROR		=>	'Core Error',
+				E_CORE_WARNING		=>	'Core Warning',
+				E_COMPILE_ERROR		=>	'Compile Error',
+				E_COMPILE_WARNING	=>	'Compile Warning',
+				E_USER_ERROR		=>	'User Error',
+				E_USER_WARNING		=>	'User Warning',
+				E_USER_NOTICE		=>	'User Notice',
+				E_STRICT		=>	'Runtime Notice'
+			);
 
-	/**
-	 * Initialize execption class
-	 *
-	 * @return	void
-	 */
 	public function __construct()
 	{
 		$this->ob_level = ob_get_level();
@@ -89,7 +92,7 @@ class CI_Exceptions {
 	 */
 	public function log_exception($severity, $message, $filepath, $line)
 	{
-		$severity = isset($this->levels[$severity]) ? $this->levels[$severity] : $severity;
+		$severity = ( ! isset($this->levels[$severity])) ? $severity : $this->levels[$severity];
 		log_message('error', 'Severity: '.$severity.'  --> '.$message. ' '.$filepath.' '.$line, TRUE);
 	}
 
@@ -129,21 +132,21 @@ class CI_Exceptions {
 	 * @param	string	the heading
 	 * @param	string	the message
 	 * @param	string	the template name
-	 * @param 	int	the status code
+	 * @param 	int		the status code
 	 * @return	string
 	 */
 	public function show_error($heading, $message, $template = 'error_general', $status_code = 500)
 	{
 		set_status_header($status_code);
 
-		$message = '<p>'.implode('</p><p>', is_array($message) ? $message : array($message)).'</p>';
+		$message = '<p>'.implode('</p><p>', ( ! is_array($message)) ? array($message) : $message).'</p>';
 
 		if (ob_get_level() > $this->ob_level + 1)
 		{
 			ob_end_flush();
 		}
 		ob_start();
-		include(APPPATH.'views/errors/'.$template.'.php');
+		include(APPPATH.'errors/'.$template.'.php');
 		$buffer = ob_get_contents();
 		ob_end_clean();
 		return $buffer;
@@ -160,9 +163,9 @@ class CI_Exceptions {
 	 * @param	string	the error line number
 	 * @return	string
 	 */
-	public function show_php_error($severity, $message, $filepath, $line)
+	function show_php_error($severity, $message, $filepath, $line)
 	{
-		$severity = isset($this->levels[$severity]) ? $this->levels[$severity] : $severity;
+		$severity = ( ! isset($this->levels[$severity])) ? $severity : $this->levels[$severity];
 		$filepath = str_replace('\\', '/', $filepath);
 
 		// For safety reasons we do not show the full file path
@@ -177,7 +180,7 @@ class CI_Exceptions {
 			ob_end_flush();
 		}
 		ob_start();
-		include(APPPATH.'views/errors/error_php.php');
+		include(APPPATH.'errors/'.'error_php.php');
 		$buffer = ob_get_contents();
 		ob_end_clean();
 		echo $buffer;

@@ -32,7 +32,7 @@
                           margin:auto;
                           padding: 20px;
                           
-         }
+                        }
 
 		</style>
 

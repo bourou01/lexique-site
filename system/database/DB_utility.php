@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -32,14 +32,10 @@
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-abstract class CI_DB_utility extends CI_DB_forge {
+class CI_DB_utility extends CI_DB_forge {
 
 	public $db;
-
-	// Platform specific SQL strings
-	// Just setting those defaults to FALSE as they are mostly MySQL-specific
-	protected $_optimize_table	= FALSE;
-	protected $_repair_table	= FALSE;
+	public $data_cache		= array();
 
 	public function __construct()
 	{
@@ -54,34 +50,27 @@ abstract class CI_DB_utility extends CI_DB_forge {
 	/**
 	 * List databases
 	 *
-	 * @return	array
+	 * @return	bool
 	 */
 	public function list_databases()
 	{
 		// Is there a cached result?
-		if (isset($this->db->data_cache['db_names']))
+		if (isset($this->data_cache['db_names']))
 		{
-			return $this->db->data_cache['db_names'];
-		}
-		elseif ($this->_list_databases === FALSE)
-		{
-			return ($this->db->db_debug) ? $this->db->display_error('db_unsuported_feature') : FALSE;
+			return $this->data_cache['db_names'];
 		}
 
-		$this->db->data_cache['db_names'] = array();
-
-		$query = $this->db->query($this->_list_databases);
-		if ($query === FALSE)
+		$query = $this->db->query($this->_list_databases());
+		$dbs = array();
+		if ($query->num_rows() > 0)
 		{
-			return $this->db->data_cache['db_names'];
+			foreach ($query->result_array() as $row)
+			{
+				$dbs[] = current($row);
+			}
 		}
 
-		for ($i = 0, $c = count($query); $i < $c; $i++)
-		{
-			$this->db->data_cache['db_names'] = current($query[$i]);
-		}
-
-		return $this->db->data_cache['db_names'];
+		return $this->data_cache['db_names'] = $dbs;
 	}
 
 	// --------------------------------------------------------------------
@@ -90,12 +79,23 @@ abstract class CI_DB_utility extends CI_DB_forge {
 	 * Determine if a particular database exists
 	 *
 	 * @param	string
-	 * @return	bool
+	 * @return	boolean
 	 */
 	public function database_exists($database_name)
 	{
-		return in_array($database_name, $this->list_databases());
+		// Some databases won't have access to the list_databases() function, so
+		// this is intended to allow them to override with their own functions as
+		// defined in $driver_utility.php
+		if (method_exists($this, '_database_exists'))
+		{
+			return $this->_database_exists($database_name);
+		}
+		else
+		{
+			return ( ! in_array($database_name, $this->list_databases())) ? FALSE : TRUE;
+		}
 	}
+
 
 	// --------------------------------------------------------------------
 
@@ -103,23 +103,24 @@ abstract class CI_DB_utility extends CI_DB_forge {
 	 * Optimize Table
 	 *
 	 * @param	string	the table name
-	 * @return	mixed
+	 * @return	bool
 	 */
 	public function optimize_table($table_name)
 	{
-		if ($this->_optimize_table === FALSE)
+		$sql = $this->_optimize_table($table_name);
+
+		if (is_bool($sql))
 		{
-			return ($this->db->db_debug) ? $this->db->display_error('db_unsuported_feature') : FALSE;
+			show_error('db_must_use_set');
+			return FALSE;
 		}
 
-		$query = $this->db->query(sprintf($this->_optimize_table, $this->db->escape_identifiers($table_name)));
-		if ($query !== FALSE)
-		{
-			$query = $query->result_array();
-			return current($res);
-		}
+		$query = $this->db->query($sql);
+		$res = $query->result_array();
 
-		return FALSE;
+		// Note: Due to a bug in current() that affects some versions
+		// of PHP we can not pass function call directly into it
+		return current($res);
 	}
 
 	// --------------------------------------------------------------------
@@ -127,26 +128,26 @@ abstract class CI_DB_utility extends CI_DB_forge {
 	/**
 	 * Optimize Database
 	 *
-	 * @return	mixed
+	 * @return	array
 	 */
 	public function optimize_database()
 	{
-		if ($this->_optimize_table === FALSE)
-		{
-			return ($this->db->db_debug) ? $this->db->display_error('db_unsuported_feature') : FALSE;
-		}
-
 		$result = array();
 		foreach ($this->db->list_tables() as $table_name)
 		{
-			$res = $this->db->query(sprintf($this->_optimize_table, $this->db->escape_identifiers($table_name)));
-			if (is_bool($res))
+			$sql = $this->_optimize_table($table_name);
+
+			if (is_bool($sql))
 			{
-				return $res;
+				return $sql;
 			}
 
+			$query = $this->db->query($sql);
+
 			// Build the result array...
-			$res = $res->result_array();
+			// Note: Due to a bug in current() that affects some versions
+			// of PHP we can not pass function call directly into it
+			$res = $query->result_array();
 			$res = current($res);
 			$key = str_replace($this->db->database.'.', '', current($res));
 			$keys = array_keys($res);
@@ -164,23 +165,23 @@ abstract class CI_DB_utility extends CI_DB_forge {
 	 * Repair Table
 	 *
 	 * @param	string	the table name
-	 * @return	mixed
+	 * @return	bool
 	 */
 	public function repair_table($table_name)
 	{
-		if ($this->_repair_table === FALSE)
+		$sql = $this->_repair_table($table_name);
+
+		if (is_bool($sql))
 		{
-			return ($this->db->db_debug) ? $this->db->display_error('db_unsuported_feature') : FALSE;
+			return $sql;
 		}
 
-		$query = $this->db->query(sprintf($this->_repair_table, $this->db->escape_identifiers($table_name)));
-		if (is_bool($query))
-		{
-			return $query;
-		}
+		$query = $this->db->query($sql);
 
-		$query = $query->result_array();
-		return current($query);
+		// Note: Due to a bug in current() that affects some versions
+		// of PHP we can not pass function call directly into it
+		$res = $query->result_array();
+		return current($res);
 	}
 
 	// --------------------------------------------------------------------
@@ -211,7 +212,7 @@ abstract class CI_DB_utility extends CI_DB_forge {
 		$out = rtrim($out).$newline;
 
 		// Next blast through the result array and build out the rows
-		while ($row = $query->unbuffered_row('array'))
+		foreach ($query->result_array() as $row)
 		{
 			foreach ($row as $item)
 			{
@@ -256,18 +257,18 @@ abstract class CI_DB_utility extends CI_DB_forge {
 		$CI->load->helper('xml');
 
 		// Generate the result
-		$xml = '<'.$root.'>'.$newline;
-		while ($row = $query->unbuffered_row())
+		$xml = "<{$root}>".$newline;
+		foreach ($query->result_array() as $row)
 		{
-			$xml .= $tab.'<'.$element.'>'.$newline;
+			$xml .= $tab."<{$element}>".$newline;
 			foreach ($row as $key => $val)
 			{
-				$xml .= $tab.$tab.'<'.$key.'>'.xml_convert($val).'</'.$key.'>'.$newline;
+				$xml .= $tab.$tab."<{$key}>".xml_convert($val)."</{$key}>".$newline;
 			}
-			$xml .= $tab.'</'.$element.'>'.$newline;
+			$xml .= $tab."</{$element}>".$newline;
 		}
 
-		return $xml.'</'.$root.'>'.$newline;
+		return $xml .= "</$root>".$newline;
 	}
 
 	// --------------------------------------------------------------------
@@ -327,8 +328,8 @@ abstract class CI_DB_utility extends CI_DB_forge {
 
 		// Is the encoder supported? If not, we'll either issue an
 		// error or use plain text depending on the debug settings
-		if (($prefs['format'] === 'gzip' && ! @function_exists('gzencode'))
-			OR ($prefs['format'] === 'zip' && ! @function_exists('gzcompress')))
+		if (($prefs['format'] === 'gzip' AND ! @function_exists('gzencode'))
+			OR ($prefs['format'] === 'zip'  AND ! @function_exists('gzcompress')))
 		{
 			if ($this->db->db_debug)
 			{
@@ -342,7 +343,7 @@ abstract class CI_DB_utility extends CI_DB_forge {
 		if ($prefs['format'] === 'zip')
 		{
 			// Set the filename if not provided (only needed with Zip files)
-			if ($prefs['filename'] === '')
+			if ($prefs['filename'] == '')
 			{
 				$prefs['filename'] = (count($prefs['tables']) === 1 ? $prefs['tables'] : $this->db->database)
 							.date('Y-m-d_H-i', time()).'.sql';
@@ -368,7 +369,7 @@ abstract class CI_DB_utility extends CI_DB_forge {
 			$CI->zip->add_data($prefs['filename'], $this->_backup($prefs));
 			return $CI->zip->get_zip();
 		}
-		elseif ($prefs['format'] === 'txt') // Was a text file requested?
+		elseif ($prefs['format'] == 'txt') // Was a text file requested?
 		{
 			return $this->_backup($prefs);
 		}

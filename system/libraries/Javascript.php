@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -25,6 +25,8 @@
  * @filesource
  */
 
+// ------------------------------------------------------------------------
+
 /**
  * Javascript Class
  *
@@ -44,7 +46,7 @@ class CI_Javascript {
 
 		foreach ($defaults as $key => $val)
 		{
-			if (isset($params[$key]) && $params[$key] !== '')
+			if (isset($params[$key]) && $params[$key] !== "")
 			{
 				$defaults[$key] = $params[$key];
 			}
@@ -59,7 +61,7 @@ class CI_Javascript {
 		// make js to refer to current library
 		$this->js =& $this->CI->$js_library_driver;
 
-		log_message('debug', 'Javascript Class Initialized and loaded. Driver used: '.$js_library_driver);
+		log_message('debug', "Javascript Class Initialized and loaded.  Driver used: $js_library_driver");
 	}
 
 	// --------------------------------------------------------------------
@@ -105,7 +107,7 @@ class CI_Javascript {
 	 *
 	 * @param	string	The element to attach the event to
 	 * @param	string	The code to execute
-	 * @param	bool	whether or not to return false
+	 * @param	boolean	whether or not to return false
 	 * @return	string
 	 */
 	public function click($element = 'this', $js = '', $ret_false = TRUE)
@@ -373,6 +375,7 @@ class CI_Javascript {
 	// Effects
 	// --------------------------------------------------------------------
 
+
 	/**
 	 * Add Class
 	 *
@@ -615,12 +618,15 @@ class CI_Javascript {
 		{
 			$this->_javascript_location = $external_file;
 		}
-		elseif ($this->CI->config->item('javascript_location') !== '')
+		else
 		{
-			$this->_javascript_location = $this->CI->config->item('javascript_location');
+			if ($this->CI->config->item('javascript_location') != '')
+			{
+				$this->_javascript_location = $this->CI->config->item('javascript_location');
+			}
 		}
 
-		if ($relative === TRUE OR strpos($external_file, 'http://') === 0 OR strpos($external_file, 'https://') === 0)
+		if ($relative === TRUE OR strncmp($external_file, 'http://', 7) === 0 OR strncmp($external_file, 'https://', 8) === 0)
 		{
 			$str = $this->_open_script($external_file);
 		}
@@ -644,13 +650,13 @@ class CI_Javascript {
 	 * Outputs a <script> tag
 	 *
 	 * @param	string	The element to attach the event to
-	 * @param	bool	If a CDATA section should be added
+	 * @param	boolean	If a CDATA section should be added
 	 * @return	string
 	 */
 	public function inline($script, $cdata = TRUE)
 	{
 		return $this->_open_script()
-			. ($cdata ? "\n// <![CDATA[\n".$script."\n// ]]>\n" : "\n".$script."\n")
+			. ($cdata ? "\n// <![CDATA[\n{$script}\n// ]]>\n" : "\n{$script}\n")
 			. $this->_close_script();
 	}
 
@@ -667,7 +673,7 @@ class CI_Javascript {
 	protected function _open_script($src = '')
 	{
 		return '<script type="text/javascript" charset="'.strtolower($this->CI->config->item('charset')).'"'
-			.($src === '' ? '>' : ' src="'.$src.'">');
+			. ($src == '' ? '>' : ' src="'.$src.'">');
 	}
 
 	// --------------------------------------------------------------------
@@ -682,11 +688,14 @@ class CI_Javascript {
 	 */
 	protected function _close_script($extra = "\n")
 	{
-		return '</script>'.$extra;
+		return "</script>$extra";
 	}
 
+
+	// --------------------------------------------------------------------
 	// --------------------------------------------------------------------
 	// AJAX-Y STUFF - still a testbed
+	// --------------------------------------------------------------------
 	// --------------------------------------------------------------------
 
 	/**
@@ -723,7 +732,7 @@ class CI_Javascript {
 		{
 			if (is_object($result))
 			{
-				$json_result = is_callable(array($result, 'result_array')) ? $result->result_array() : (array) $result;
+				$json_result = $result->result_array();
 			}
 			elseif (is_array($result))
 			{
@@ -742,9 +751,9 @@ class CI_Javascript {
 		$json = array();
 		$_is_assoc = TRUE;
 
-		if ( ! is_array($json_result) && empty($json_result))
+		if ( ! is_array($json_result) AND empty($json_result))
 		{
-			show_error('Generate JSON Failed - Illegal key, value pair.');
+			show_error("Generate JSON Failed - Illegal key, value pair.");
 		}
 		elseif ($match_array_type)
 		{
@@ -765,7 +774,7 @@ class CI_Javascript {
 
 		$json = implode(',', $json);
 
-		return $_is_assoc ? '{'.$json.'}' : '['.$json.']';
+		return $_is_assoc ? "{".$json."}" : "[".$json."]";
 
 	}
 
@@ -776,8 +785,8 @@ class CI_Javascript {
 	 *
 	 * Checks for an associative array
 	 *
-	 * @param	array
-	 * @return	bool
+	 * @param	type
+	 * @return	type
 	 */
 	protected function _is_associative_array($arr)
 	{
@@ -799,8 +808,8 @@ class CI_Javascript {
 	 *
 	 * Ensures a standard json value and escapes values
 	 *
-	 * @param	mixed
-	 * @return	string
+	 * @param	type
+	 * @return	type
 	 */
 	protected function _prep_args($result, $is_key = FALSE)
 	{
@@ -822,7 +831,9 @@ class CI_Javascript {
 		}
 	}
 
+	// --------------------------------------------------------------------
 }
+// END Javascript Class
 
 /* End of file Javascript.php */
 /* Location: ./system/libraries/Javascript.php */

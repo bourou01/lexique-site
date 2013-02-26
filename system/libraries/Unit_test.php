@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -24,6 +24,8 @@
  * @since		Version 1.3.1
  * @filesource
  */
+
+// ------------------------------------------------------------------------
 
 /**
  * Unit Testing Class
@@ -58,7 +60,7 @@ class CI_Unit_test {
 							'notes'
 						);
 
-		log_message('debug', 'Unit Testing Class Initialized');
+		log_message('debug', "Unit Testing Class Initialized");
 	}
 
 	// --------------------------------------------------------------------
@@ -73,7 +75,7 @@ class CI_Unit_test {
 	 */
 	public function set_test_items($items = array())
 	{
-		if ( ! empty($items) && is_array($items))
+		if ( ! empty($items) AND is_array($items))
 		{
 			$this->_test_items_visible = $items;
 		}
@@ -93,20 +95,20 @@ class CI_Unit_test {
 	 */
 	public function run($test, $expected = TRUE, $test_name = 'undefined', $notes = '')
 	{
-		if ($this->active === FALSE)
+		if ($this->active == FALSE)
 		{
 			return FALSE;
 		}
 
 		if (in_array($expected, array('is_object', 'is_string', 'is_bool', 'is_true', 'is_false', 'is_int', 'is_numeric', 'is_float', 'is_double', 'is_array', 'is_null'), TRUE))
 		{
-			$expected = str_replace('is_double', 'is_float', $expected);
-			$result = $expected($test);
+			$expected = str_replace('is_float', 'is_double', $expected);
+			$result = ($expected($test)) ? TRUE : FALSE;
 			$extype = str_replace(array('true', 'false'), 'bool', str_replace('is_', '', $expected));
 		}
 		else
 		{
-			$result = ($this->strict === TRUE) ? ($test === $expected) : ($test === $expected);
+			$result = ($this->strict == TRUE) ? ($test === $expected) : ($test == $expected);
 			$extype = gettype($expected);
 		}
 
@@ -124,7 +126,7 @@ class CI_Unit_test {
 
 		$this->results[] = $report;
 
-		return $this->report($this->result($report));
+		return($this->report($this->result($report)));
 	}
 
 	// --------------------------------------------------------------------
@@ -155,13 +157,13 @@ class CI_Unit_test {
 
 			foreach ($res as $key => $val)
 			{
-				if ($key === $CI->lang->line('ut_result'))
+				if ($key == $CI->lang->line('ut_result'))
 				{
-					if ($val === $CI->lang->line('ut_passed'))
+					if ($val == $CI->lang->line('ut_passed'))
 					{
 						$val = '<span style="color: #0C0;">'.$val.'</span>';
 					}
-					elseif ($val === $CI->lang->line('ut_failed'))
+					elseif ($val == $CI->lang->line('ut_failed'))
 					{
 						$val = '<span style="color: #C00;">'.$val.'</span>';
 					}
@@ -184,7 +186,7 @@ class CI_Unit_test {
 	 * Causes the evaluation to use === rather than ==
 	 *
 	 * @param	bool
-	 * @return	void
+	 * @return	null
 	 */
 	public function use_strict($state = TRUE)
 	{
@@ -199,7 +201,7 @@ class CI_Unit_test {
 	 * Enables/disables unit testing
 	 *
 	 * @param	bool
-	 * @return	void
+	 * @return	null
 	 */
 	public function active($state = TRUE)
 	{
@@ -289,11 +291,15 @@ class CI_Unit_test {
 	 */
 	protected function _backtrace()
 	{
-		$back = debug_backtrace();
-		return array(
-				'file' => (isset($back[1]['file']) ? $back[1]['file'] : ''),
-				'line' => (isset($back[1]['line']) ? $back[1]['line'] : '')
-			);
+		if (function_exists('debug_backtrace'))
+		{
+			$back = debug_backtrace();
+			return array(
+					'file' => (isset($back[1]['file']) ? $back[1]['file'] : ''),
+					'line' => (isset($back[1]['line']) ? $back[1]['line'] : '')
+				);
+		}
+		return array('file' => 'Unknown', 'line' => 'Unknown');
 	}
 
 	// --------------------------------------------------------------------
@@ -305,10 +311,10 @@ class CI_Unit_test {
 	 */
 	protected function _default_template()
 	{
-		$this->_template = "\n".'<table style="width:100%; font-size:small; margin:10px 0; border-collapse:collapse; border:1px solid #CCC;">{rows}'."\n</table>";
+		$this->_template = "\n".'<table style="width:100%; font-size:small; margin:10px 0; border-collapse:collapse; border:1px solid #CCC;">{rows}'."\n".'</table>';
 
 		$this->_template_rows = "\n\t<tr>\n\t\t".'<th style="text-align: left; border-bottom:1px solid #CCC;">{item}</th>'
-					."\n\t\t".'<td style="border-bottom:1px solid #CCC;">{result}</td>'."\n\t</tr>";
+					. "\n\t\t".'<td style="border-bottom:1px solid #CCC;">{result}</td>'."\n\t</tr>";
 	}
 
 	// --------------------------------------------------------------------
@@ -327,7 +333,7 @@ class CI_Unit_test {
 			return;
 		}
 
-		if (is_null($this->_template) OR ! preg_match('/\{rows\}(.*?)\{\/rows\}/si', $this->_template, $match))
+		if (is_null($this->_template) OR ! preg_match("/\{rows\}(.*?)\{\/rows\}/si", $this->_template, $match))
 		{
 			$this->_default_template();
 			return;
@@ -338,6 +344,7 @@ class CI_Unit_test {
 	}
 
 }
+// END Unit_test Class
 
 /**
  * Helper functions to test boolean true/false
@@ -346,12 +353,13 @@ class CI_Unit_test {
  */
 function is_true($test)
 {
-	return ($test === TRUE);
+	return (is_bool($test) AND $test === TRUE) ? TRUE : FALSE;
 }
 function is_false($test)
 {
-	return ($test === FALSE);
+	return (is_bool($test) AND $test === FALSE) ? TRUE : FALSE;
 }
+
 
 /* End of file Unit_test.php */
 /* Location: ./system/libraries/Unit_test.php */

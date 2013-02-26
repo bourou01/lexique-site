@@ -1,13 +1,13 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
- *
+ * 
  * Licensed under the Open Software License version 3.0
- *
+ * 
  * This source file is subject to the Open Software License (OSL 3.0) that is
  * bundled with this package in the files license.txt / license.rst.  It is
  * also available through the world wide web at this URL:
@@ -25,6 +25,8 @@
  * @filesource
  */
 
+// --------------------------------------------------------------------
+
 /**
  * MySQL Result Class
  *
@@ -39,9 +41,10 @@ class CI_DB_mysql_result extends CI_DB_result {
 	/**
 	 * Number of rows in the result set
 	 *
-	 * @return	int
+	 * @access	public
+	 * @return	integer
 	 */
-	public function num_rows()
+	function num_rows()
 	{
 		return @mysql_num_rows($this->result_id);
 	}
@@ -51,9 +54,10 @@ class CI_DB_mysql_result extends CI_DB_result {
 	/**
 	 * Number of fields in the result set
 	 *
-	 * @return	int
+	 * @access	public
+	 * @return	integer
 	 */
-	public function num_fields()
+	function num_fields()
 	{
 		return @mysql_num_fields($this->result_id);
 	}
@@ -65,9 +69,10 @@ class CI_DB_mysql_result extends CI_DB_result {
 	 *
 	 * Generates an array of column names
 	 *
+	 * @access	public
 	 * @return	array
 	 */
-	public function list_fields()
+	function list_fields()
 	{
 		$field_names = array();
 		while ($field = mysql_fetch_field($this->result_id))
@@ -85,19 +90,27 @@ class CI_DB_mysql_result extends CI_DB_result {
 	 *
 	 * Generates an array of objects containing field meta-data
 	 *
+	 * @access	public
 	 * @return	array
 	 */
-	public function field_data()
+	function field_data()
 	{
 		$retval = array();
-		for ($i = 0, $c = $this->num_fields(); $i < $c; $i++)
+		while ($field = mysql_fetch_object($this->result_id))
 		{
-			$retval[$i]			= new stdClass();
-			$retval[$i]->name		= mysql_field_name($this->result_id, $i);
-			$retval[$i]->type		= mysql_field_type($this->result_id, $i);
-			$retval[$i]->max_length		= mysql_field_len($this->result_id, $i);
-			$retval[$i]->primary_key	= (strpos(mysql_field_flags($this->result_id, $i), 'primary_key') === FALSE) ? 0 : 1;
-			$retval[$i]->default		= '';
+			preg_match('/([a-zA-Z]+)(\(\d+\))?/', $field->Type, $matches);
+
+			$type = (array_key_exists(1, $matches)) ? $matches[1] : NULL;
+			$length = (array_key_exists(2, $matches)) ? preg_replace('/[^\d]/', '', $matches[2]) : NULL;
+
+			$F				= new stdClass();
+			$F->name		= $field->Field;
+			$F->type		= $type;
+			$F->default		= $field->Default;
+			$F->max_length	= $length;
+			$F->primary_key = ( $field->Key == 'PRI' ? 1 : 0 );
+
+			$retval[] = $F;
 		}
 
 		return $retval;
@@ -108,9 +121,9 @@ class CI_DB_mysql_result extends CI_DB_result {
 	/**
 	 * Free the result
 	 *
-	 * @return	void
+	 * @return	null
 	 */
-	public function free_result()
+	function free_result()
 	{
 		if (is_resource($this->result_id))
 		{
@@ -124,13 +137,14 @@ class CI_DB_mysql_result extends CI_DB_result {
 	/**
 	 * Data Seek
 	 *
-	 * Moves the internal pointer to the desired offset. We call
+	 * Moves the internal pointer to the desired offset.  We call
 	 * this internally before fetching results to make sure the
 	 * result set starts at zero
 	 *
-	 * @return	bool
+	 * @access	private
+	 * @return	array
 	 */
-	protected function _data_seek($n = 0)
+	function _data_seek($n = 0)
 	{
 		return mysql_data_seek($this->result_id, $n);
 	}
@@ -142,9 +156,10 @@ class CI_DB_mysql_result extends CI_DB_result {
 	 *
 	 * Returns the result set as an array
 	 *
+	 * @access	private
 	 * @return	array
 	 */
-	protected function _fetch_assoc()
+	function _fetch_assoc()
 	{
 		return mysql_fetch_assoc($this->result_id);
 	}
@@ -156,14 +171,16 @@ class CI_DB_mysql_result extends CI_DB_result {
 	 *
 	 * Returns the result set as an object
 	 *
+	 * @access	private
 	 * @return	object
 	 */
-	protected function _fetch_object()
+	function _fetch_object()
 	{
 		return mysql_fetch_object($this->result_id);
 	}
 
 }
+
 
 /* End of file mysql_result.php */
 /* Location: ./system/database/drivers/mysql/mysql_result.php */

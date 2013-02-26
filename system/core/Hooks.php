@@ -2,7 +2,7 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.2.4 or newer
+ * An open source application development framework for PHP 5.1.6 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -25,6 +25,8 @@
  * @filesource
  */
 
+// ------------------------------------------------------------------------
+
 /**
  * CodeIgniter Hooks Class
  *
@@ -39,46 +41,50 @@
 class CI_Hooks {
 
 	/**
-	 * Determines whether hooks are enabled
+	 * Determines wether hooks are enabled
 	 *
 	 * @var bool
 	 */
-	public $enabled =	FALSE;
-
+	public $enabled		= FALSE;
 	/**
 	 * List of all hooks set in config/hooks.php
 	 *
 	 * @var array
 	 */
-	public $hooks =	array();
-
+	public $hooks			= array();
 	/**
-	 * Determines whether hook is in progress, used to prevent infinte loops
+	 * Determines wether hook is in progress, used to prevent infinte loops
 	 *
 	 * @var bool
 	 */
-	public $in_progress	=	FALSE;
+	public $in_progress	= FALSE;
+
+	public function __construct()
+	{
+		$this->_initialize();
+		log_message('debug', 'Hooks Class Initialized');
+	}
+
+	// --------------------------------------------------------------------
 
 	/**
 	 * Initialize the Hooks Preferences
 	 *
 	 * @return	void
 	 */
-	public function __construct()
+	private function _initialize()
 	{
 		$CFG =& load_class('Config', 'core');
 
-		log_message('debug', 'Hooks Class Initialized');
-
 		// If hooks are not enabled in the config file
 		// there is nothing else to do
-		if ($CFG->item('enable_hooks') === FALSE)
+		if ($CFG->item('enable_hooks') == FALSE)
 		{
 			return;
 		}
 
 		// Grab the "hooks" definition file.
-		if (defined('ENVIRONMENT') && is_file(APPPATH.'config/'.ENVIRONMENT.'/hooks.php'))
+		if (defined('ENVIRONMENT') AND is_file(APPPATH.'config/'.ENVIRONMENT.'/hooks.php'))
 		{
 			include(APPPATH.'config/'.ENVIRONMENT.'/hooks.php');
 		}
@@ -107,14 +113,14 @@ class CI_Hooks {
 	 * @param	string	the hook name
 	 * @return	mixed
 	 */
-	public function call_hook($which = '')
+	public function _call_hook($which = '')
 	{
 		if ( ! $this->enabled OR ! isset($this->hooks[$which]))
 		{
 			return FALSE;
 		}
 
-		if (isset($this->hooks[$which][0]) && is_array($this->hooks[$which][0]))
+		if (isset($this->hooks[$which][0]) AND is_array($this->hooks[$which][0]))
 		{
 			foreach ($this->hooks[$which] as $val)
 			{
@@ -152,7 +158,7 @@ class CI_Hooks {
 
 		// If the script being called happens to have the same
 		// hook call within it a loop can happen
-		if ($this->in_progress === TRUE)
+		if ($this->in_progress == TRUE)
 		{
 			return;
 		}
@@ -161,7 +167,7 @@ class CI_Hooks {
 		// Set file path
 		// -----------------------------------
 
-		if ( ! isset($data['filepath'], $data['filename']))
+		if ( ! isset($data['filepath']) OR ! isset($data['filename']))
 		{
 			return FALSE;
 		}
@@ -181,12 +187,12 @@ class CI_Hooks {
 		$function	= FALSE;
 		$params		= '';
 
-		if ( ! empty($data['class']))
+		if (isset($data['class']) AND $data['class'] != '')
 		{
 			$class = $data['class'];
 		}
 
-		if ( ! empty($data['function']))
+		if (isset($data['function']))
 		{
 			$function = $data['function'];
 		}
@@ -196,7 +202,7 @@ class CI_Hooks {
 			$params = $data['params'];
 		}
 
-		if ($class === FALSE && $function === FALSE)
+		if ($class === FALSE AND $function === FALSE)
 		{
 			return FALSE;
 		}
