@@ -4,9 +4,7 @@
 <h2>Version iPhone</h2>
 
 <blockquote>
-	<h4>Deja disponible sur l'AppStore...</h4>
-	<br/>
-	<a class="btn btn-danger" href="http://itunes.apple.com/us/app/imayotte-lexique/id517601157?mt=8">Telechargeable Ici</a>
+	Bientot disponible sur l'AppStore...
 </blockquote>
 
 </div>
