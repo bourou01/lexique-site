@@ -14,7 +14,7 @@ $(document).ready(function() {
 		
 		if (chat_message_content == "") { return false;	}
 		
-		$.post(base_url + "chat/chat/ajax_add_chat_message", { chat_message_content : chat_message_content, chat_id : chat_id, user_id : user_id }, function(data) {
+		$.post(base_url + "index.php/chat/chat/ajax_add_chat_message", { chat_message_content : chat_message_content, chat_id : chat_id, user_id : user_id }, function(data) {
 			
 			if (data.status == 'ok')
 			{
@@ -37,7 +37,7 @@ $(document).ready(function() {
 	
 	function get_chat_messages()
 	{
-		$.post(base_url + 'chat/chat/ajax_get_chat_messages', { chat_id : chat_id }, function(data) {
+		$.post(base_url + 'index.php/chat/chat/ajax_get_chat_messages', { chat_id : chat_id }, function(data) {
 			
 			if (data.status == 'ok')
 			{

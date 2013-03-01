@@ -38,7 +38,7 @@ class Welcome extends CI_Controller {
 		$data['title'] = "Parlons Mahorais";
 		$data['navlist'] = $this->MCats->getCategoriesNav();
 
-		$data['get_data_method'] = "welcome/getalldatabyajax";
+		$data['get_data_method'] = "index.php/welcome/getalldatabyajax";
 		$data['main'] = 'users/hometab';
 		
 		$this->load->vars($data);
@@ -126,7 +126,7 @@ class Welcome extends CI_Controller {
 		
 		$data['category'] = $cat;
 		
-		$data['get_data_method'] = "welcome/getdatabyajax/".$id;
+		$data['get_data_method'] = "index.php/welcome/getdatabyajax/".$id;
 		$data['main'] = 'users/cattab';
 		
 		$data['navlist'] = $this->MCats->getCategoriesNav();
@@ -240,7 +240,7 @@ class Welcome extends CI_Controller {
 			$data['title'] = "Parlons Mahorais";
 			/*Fin load the model and get results*/
 
-		$data['get_data_method'] = "welcome/getfavorisdatabyajax/".$currentUserId;
+		$data['get_data_method'] = "index.php/welcome/getfavorisdatabyajax/".$currentUserId;
 		$data['main'] = 'users/favoris';
 		$data['title'] = "Cherchons Mahorais";
 		$data['navlist'] = $this->MCats->getCategoriesNav();

@@ -43,6 +43,7 @@
 $config['base_url']	= 'http://localhost:8888/lexique-site/';
 //$config['base_url']	= 'http://www.jugemento.com/lexique/';
 //$config['base_url']	= 'http://mzouasia.mayotte.free.fr/';
+//$config['base_url']	= 'http://www.wembecorp.com/lexique/';
 /*
 |--------------------------------------------------------------------------
 | Index File
