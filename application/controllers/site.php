@@ -18,5 +18,11 @@ class Site extends CI_Controller {
 	{
 		echo "salut";
 	}
+	
+	public function test() {
+		
+		
+		
+	}
 
 }
