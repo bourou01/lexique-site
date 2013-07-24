@@ -1,8 +1,8 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.1.6 or newer
+ * An open source application development framework for PHP 5.2.4 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -18,7 +18,7 @@
  *
  * @package		CodeIgniter
  * @author		EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2012, EllisLab, Inc. (http://ellislab.com/)
+ * @copyright	Copyright (c) 2008 - 2013, EllisLab, Inc. (http://ellislab.com/)
  * @license		http://opensource.org/licenses/AFL-3.0 Academic Free License (AFL 3.0)
  * @link		http://codeigniter.com
  * @since		Version 1.0
@@ -29,14 +29,14 @@
 | -------------------------------------------------------------------
 | USER AGENT TYPES
 | -------------------------------------------------------------------
-| This file contains four arrays of user agent data.  It is used by the
+| This file contains four arrays of user agent data. It is used by the
 | User Agent Class to help identify browser, platform, robot, and
-| mobile device data.  The array keys are used to identify the device
+| mobile device data. The array keys are used to identify the device
 | and the array values are used to set the actual name of the item.
-|
 */
 
-$platforms = array (
+$platforms = array(
+	'windows nt 6.2'	=> 'Windows 8',
 	'windows nt 6.1'	=> 'Windows 7',
 	'windows nt 6.0'	=> 'Windows Vista',
 	'windows nt 5.2'	=> 'Windows 2003',
@@ -51,6 +51,11 @@ $platforms = array (
 	'windows 95'		=> 'Windows 95',
 	'win95'				=> 'Windows 95',
 	'windows'			=> 'Unknown Windows OS',
+	'android'			=> 'Android',
+	'blackberry'		=> 'BlackBerry',
+	'iphone'			=> 'iOS',
+	'ipad'				=> 'iOS',
+	'ipod'				=> 'iOS',
 	'os x'				=> 'Mac OS X',
 	'ppc mac'			=> 'Power PC Mac',
 	'freebsd'			=> 'FreeBSD',
@@ -96,7 +101,8 @@ $browsers = array(
 	'Links'			=> 'Links',
 	'hotjava'		=> 'HotJava',
 	'amaya'			=> 'Amaya',
-	'IBrowse'		=> 'IBrowse'
+	'IBrowse'		=> 'IBrowse',
+	'Maxthon'		=> 'Maxthon'
 );
 
 $mobiles = array(
@@ -117,97 +123,101 @@ $mobiles = array(
 //	'motorola'			=> 'Motorola'
 
 	// Phones and Manufacturers
-	'motorola'		=> "Motorola",
-	'nokia'			=> "Nokia",
-	'palm'			=> "Palm",
-	'iphone'		=> "Apple iPhone",
-	'ipad'			=> "iPad",
-	'ipod'			=> "Apple iPod Touch",
-	'sony'			=> "Sony Ericsson",
-	'ericsson'		=> "Sony Ericsson",
-	'blackberry'	=> "BlackBerry",
-	'cocoon'		=> "O2 Cocoon",
-	'blazer'		=> "Treo",
-	'lg'			=> "LG",
-	'amoi'			=> "Amoi",
-	'xda'			=> "XDA",
-	'mda'			=> "MDA",
-	'vario'			=> "Vario",
-	'htc'			=> "HTC",
-	'samsung'		=> "Samsung",
-	'sharp'			=> "Sharp",
-	'sie-'			=> "Siemens",
-	'alcatel'		=> "Alcatel",
-	'benq'			=> "BenQ",
-	'ipaq'			=> "HP iPaq",
-	'mot-'			=> "Motorola",
-	'playstation portable'	=> "PlayStation Portable",
-	'hiptop'		=> "Danger Hiptop",
-	'nec-'			=> "NEC",
-	'panasonic'		=> "Panasonic",
-	'philips'		=> "Philips",
-	'sagem'			=> "Sagem",
-	'sanyo'			=> "Sanyo",
-	'spv'			=> "SPV",
-	'zte'			=> "ZTE",
-	'sendo'			=> "Sendo",
-	'dsi'			=> "Nintendo DSi",
-	'ds'			=> "Nintendo DS",
-	'wii'			=> "Nintendo Wii",
-	'3ds'			=> "Nintendo 3DS",
-	'open web'		=> "Open Web",
-	'openweb'		=> "OpenWeb",
+	'motorola'		=> 'Motorola',
+	'nokia'			=> 'Nokia',
+	'palm'			=> 'Palm',
+	'iphone'		=> 'Apple iPhone',
+	'ipad'			=> 'iPad',
+	'ipod'			=> 'Apple iPod Touch',
+	'sony'			=> 'Sony Ericsson',
+	'ericsson'		=> 'Sony Ericsson',
+	'blackberry'	=> 'BlackBerry',
+	'cocoon'		=> 'O2 Cocoon',
+	'blazer'		=> 'Treo',
+	'lg'			=> 'LG',
+	'amoi'			=> 'Amoi',
+	'xda'			=> 'XDA',
+	'mda'			=> 'MDA',
+	'vario'			=> 'Vario',
+	'htc'			=> 'HTC',
+	'samsung'		=> 'Samsung',
+	'sharp'			=> 'Sharp',
+	'sie-'			=> 'Siemens',
+	'alcatel'		=> 'Alcatel',
+	'benq'			=> 'BenQ',
+	'ipaq'			=> 'HP iPaq',
+	'mot-'			=> 'Motorola',
+	'playstation portable'	=> 'PlayStation Portable',
+	'playstation 3'		=> 'PlayStation 3',
+	'playstation vita'  	=> 'PlayStation Vita',
+	'hiptop'		=> 'Danger Hiptop',
+	'nec-'			=> 'NEC',
+	'panasonic'		=> 'Panasonic',
+	'philips'		=> 'Philips',
+	'sagem'			=> 'Sagem',
+	'sanyo'			=> 'Sanyo',
+	'spv'			=> 'SPV',
+	'zte'			=> 'ZTE',
+	'sendo'			=> 'Sendo',
+	'nintendo dsi'	=> 'Nintendo DSi',
+	'nintendo ds'	=> 'Nintendo DS',
+	'nintendo 3ds'	=> 'Nintendo 3DS',
+	'wii'			=> 'Nintendo Wii',
+	'open web'		=> 'Open Web',
+	'openweb'		=> 'OpenWeb',
 
 	// Operating Systems
-	'android'		=> "Android",
-	'symbian'		=> "Symbian",
-	'SymbianOS'		=> "SymbianOS",
-	'elaine'		=> "Palm",
-	'palm'			=> "Palm",
-	'series60'		=> "Symbian S60",
-	'windows ce'	=> "Windows CE",
+	'android'		=> 'Android',
+	'symbian'		=> 'Symbian',
+	'SymbianOS'		=> 'SymbianOS',
+	'elaine'		=> 'Palm',
+	'series60'		=> 'Symbian S60',
+	'windows ce'	=> 'Windows CE',
 
 	// Browsers
-	'obigo'			=> "Obigo",
-	'netfront'		=> "Netfront Browser",
-	'openwave'		=> "Openwave Browser",
-	'mobilexplorer'	=> "Mobile Explorer",
-	'operamini'		=> "Opera Mini",
-	'opera mini'	=> "Opera Mini",
-	'opera mobi'	=> "Opera Mobile",
+	'obigo'			=> 'Obigo',
+	'netfront'		=> 'Netfront Browser',
+	'openwave'		=> 'Openwave Browser',
+	'mobilexplorer'	=> 'Mobile Explorer',
+	'operamini'		=> 'Opera Mini',
+	'opera mini'	=> 'Opera Mini',
+	'opera mobi'	=> 'Opera Mobile',
+	'fennec'	=> 'Firefox Mobile',
 
 	// Other
-	'digital paths'	=> "Digital Paths",
-	'avantgo'		=> "AvantGo",
-	'xiino'			=> "Xiino",
-	'novarra'		=> "Novarra Transcoder",
-	'vodafone'		=> "Vodafone",
-	'docomo'		=> "NTT DoCoMo",
-	'o2'			=> "O2",
+	'digital paths'	=> 'Digital Paths',
+	'avantgo'		=> 'AvantGo',
+	'xiino'			=> 'Xiino',
+	'novarra'		=> 'Novarra Transcoder',
+	'vodafone'		=> 'Vodafone',
+	'docomo'		=> 'NTT DoCoMo',
+	'o2'			=> 'O2',
 
 	// Fallback
-	'mobile'		=> "Generic Mobile",
-	'wireless'		=> "Generic Mobile",
-	'j2me'			=> "Generic Mobile",
-	'midp'			=> "Generic Mobile",
-	'cldc'			=> "Generic Mobile",
-	'up.link'		=> "Generic Mobile",
-	'up.browser'	=> "Generic Mobile",
-	'smartphone'	=> "Generic Mobile",
-	'cellphone'		=> "Generic Mobile"
+	'mobile'		=> 'Generic Mobile',
+	'wireless'		=> 'Generic Mobile',
+	'j2me'			=> 'Generic Mobile',
+	'midp'			=> 'Generic Mobile',
+	'cldc'			=> 'Generic Mobile',
+	'up.link'		=> 'Generic Mobile',
+	'up.browser'	=> 'Generic Mobile',
+	'smartphone'	=> 'Generic Mobile',
+	'cellphone'		=> 'Generic Mobile'
 );
 
 // There are hundreds of bots but these are the most common.
 $robots = array(
 	'googlebot'		=> 'Googlebot',
 	'msnbot'		=> 'MSNBot',
+	'baiduspider'	=> 'Baiduspider',
 	'bingbot'		=> 'Bing',
 	'slurp'			=> 'Inktomi Slurp',
 	'yahoo'			=> 'Yahoo',
 	'askjeeves'		=> 'AskJeeves',
 	'fastcrawler'	=> 'FastCrawler',
 	'infoseek'		=> 'InfoSeek Robot 1.0',
-	'lycos'			=> 'Lycos'
+	'lycos'			=> 'Lycos',
+	'yandex'		=> 'YandexBot'
 );
 
 /* End of file user_agents.php */

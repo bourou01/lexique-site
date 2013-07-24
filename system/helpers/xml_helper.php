@@ -1,8 +1,8 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP 5.1.6 or newer
+ * An open source application development framework for PHP 5.2.4 or newer
  *
  * NOTICE OF LICENSE
  *
@@ -18,14 +18,13 @@
  *
  * @package		CodeIgniter
  * @author		EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2012, EllisLab, Inc. (http://ellislab.com/)
+ * @copyright	Copyright (c) 2008 - 2013, EllisLab, Inc. (http://ellislab.com/)
  * @license		http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  * @link		http://codeigniter.com
  * @since		Version 1.0
  * @filesource
  */
-
-// ------------------------------------------------------------------------
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * CodeIgniter XML Helpers
@@ -39,26 +38,26 @@
 
 // ------------------------------------------------------------------------
 
-/**
- * Convert Reserved XML characters to Entities
- *
- * @access	public
- * @param	string
- * @return	string
- */
 if ( ! function_exists('xml_convert'))
 {
+	/**
+	 * Convert Reserved XML characters to Entities
+	 *
+	 * @param	string
+	 * @param	bool
+	 * @return	string
+	 */
 	function xml_convert($str, $protect_all = FALSE)
 	{
 		$temp = '__TEMP_AMPERSANDS__';
 
 		// Replace entities to temporary markers so that
 		// ampersands won't get messed up
-		$str = preg_replace("/&#(\d+);/", "$temp\\1;", $str);
+		$str = preg_replace('/&#(\d+);/', $temp.'\\1;', $str);
 
-		if ($protect_all == TRUE)
+		if ($protect_all === TRUE)
 		{
-			$str = preg_replace('/&(\w+);/', "$temp\\1;", $str);
+			$str = preg_replace('/&(\w+);/', $temp.'\\1;', $str);
 		}
 
 		$str = str_replace(array('&', '<', '>', '"', "'", '-'),
@@ -66,11 +65,11 @@ if ( ! function_exists('xml_convert'))
 					$str);
 
 		// Decode the temp markers back to entities
-		$str = preg_replace('/$temp(\d+);/', '&#\\1;', $str);
+		$str = preg_replace('/'.$temp.'(\d+);/', '&#\\1;', $str);
 
-		if ($protect_all == TRUE)
+		if ($protect_all === TRUE)
 		{
-			return preg_replace("/$temp(\w+);/", '&\\1;', $str);
+			return preg_replace('/'.$temp.'(\w+);/', '&\\1;', $str);
 		}
 
 		return $str;

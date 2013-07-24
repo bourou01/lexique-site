@@ -1,11 +1,12 @@
 <?php
 
-class MCats extends CI_Model{
+class MCats extends CI_Model {
 
-	function MCats(){
-		parent::__construct();
-	}
-
+    function __construct()
+    {
+        // Call the Model constructor
+        parent::__construct();
+    }
 
 function getCategory($id){
     $data = array();
